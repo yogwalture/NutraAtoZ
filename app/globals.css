@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-fraunces: "Fraunces", Georgia, serif;
+
+    /* shadcn/ui tokens (HSL channels) tuned to the brand palette */
+    --background: 45 27% 97%; /* Alabaster Cream #FAF9F6 */
+    --foreground: 153 13% 13%; /* Ink */
+
+    --card: 0 0% 100%;
+    --card-foreground: 153 13% 13%;
+
+    --primary: 171 67% 18%; /* Emerald Green #0F4C43 */
+    --primary-foreground: 45 27% 97%;
+
+    --secondary: 168 24% 92%;
+    --secondary-foreground: 171 67% 18%;
+
+    --muted: 168 18% 94%;
+    --muted-foreground: 158 7% 44%; /* Mist */
+
+    --accent: 41 54% 54%; /* Gold #C9A24B */
+    --accent-foreground: 171 67% 14%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 45 27% 97%;
+
+    --border: 168 16% 86%;
+    --input: 168 16% 84%;
+    --ring: 171 67% 18%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer utilities {
+  .bg-grain {
+    background-image: radial-gradient(
+      rgba(15, 76, 67, 0.04) 1px,
+      transparent 1px
+    );
+    background-size: 18px 18px;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
