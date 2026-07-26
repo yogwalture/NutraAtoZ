@@ -68,9 +68,9 @@ export default function DashboardShell({
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-alabaster via-[hsl(48_30%_96%)] to-[hsl(168_24%_95%)]">
       {/* ---------- Desktop sidebar ---------- */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-card lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/40 bg-white/60 shadow-float backdrop-blur-xl lg:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
             <Leaf className="h-5 w-5" strokeWidth={2.25} />
@@ -130,7 +130,7 @@ export default function DashboardShell({
 
       {/* ---------- Main column ---------- */}
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/85 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-white/40 bg-white/60 px-4 shadow-float backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-3">
             <button
               aria-label="Open menu"

@@ -10,8 +10,11 @@ export const metadata: Metadata = {
 
 export default function VendorOnboardingPage() {
   return (
-    <div className="min-h-screen bg-grain">
-      <header className="border-b border-border bg-background/80 backdrop-blur">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-alabaster via-[hsl(48_30%_96%)] to-[hsl(168_24%_95%)]">
+      <div className="orb orb-emerald left-[-6rem] top-10 h-72 w-72 animate-float-slow" />
+      <div className="orb orb-gold right-[-5rem] top-1/2 h-64 w-64 animate-float" />
+      <div className="absolute inset-0 bg-grain" />
+      <header className="relative z-10 border-b border-white/40 bg-white/60 shadow-float backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
           <a href="/" className="flex items-center gap-2.5">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-card">
@@ -28,7 +31,7 @@ export default function VendorOnboardingPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
+      <main className="relative z-10 mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
             Sell on Nutraatoz

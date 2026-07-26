@@ -25,7 +25,7 @@ export default function SiteNav() {
   return (
     <>
       {/* ============ DESKTOP HEADER (lg and up) ============ */}
-      <header className="sticky top-0 z-40 hidden border-b border-emerald/10 bg-alabaster/85 backdrop-blur-md lg:block">
+      <header className="sticky top-0 z-40 hidden border-b border-white/40 bg-white/60 shadow-float backdrop-blur-xl lg:block">
         <div className="mx-auto flex h-20 max-w-7xl items-center gap-8 px-8">
           <Logo />
 
@@ -71,7 +71,7 @@ export default function SiteNav() {
               <Store className="h-4 w-4" />
               Become a Vendor
             </a>
-            <button className="ml-1 rounded-full bg-emerald px-6 py-2.5 text-sm font-semibold text-alabaster shadow-card transition-all hover:bg-emerald-700 hover:shadow-card-hover">
+            <button className="shine ml-1 rounded-full bg-emerald px-6 py-2.5 text-sm font-semibold text-alabaster shadow-glow-emerald transition-all hover:-translate-y-0.5 hover:bg-emerald-700">
               Sign In
             </button>
           </div>
@@ -79,7 +79,7 @@ export default function SiteNav() {
       </header>
 
       {/* ============ TABLET + MOBILE TOP BAR (below lg) ============ */}
-      <header className="sticky top-0 z-40 border-b border-emerald/10 bg-alabaster/90 backdrop-blur-md lg:hidden">
+      <header className="sticky top-0 z-40 border-b border-white/40 bg-white/65 shadow-float backdrop-blur-xl lg:hidden">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <button
             aria-label="Open menu"
@@ -182,7 +182,7 @@ export default function SiteNav() {
       </aside>
 
       {/* ============ MOBILE BOTTOM BAR (below md) ============ */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-emerald/10 bg-alabaster/95 shadow-bar backdrop-blur-md md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/40 bg-white/70 shadow-bar backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)]">
           {navLinks.map((link) => {
             const Icon = link.icon;

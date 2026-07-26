@@ -3,11 +3,12 @@ import { products } from "@/lib/data";
 
 export default function SupplementsSection() {
   return (
-    <section
-      id="lab-tested"
-      className="border-t border-emerald/10 bg-emerald/[0.03]"
-    >
-      <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20">
+    <section id="lab-tested" className="relative overflow-hidden">
+      {/* deep gradient band for contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-emerald/[0.05] via-transparent to-gold/[0.05]" />
+      <div className="orb orb-emerald left-[-6rem] top-1/3 h-72 w-72 animate-pulse-glow" />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20">
         <div className="flex items-end justify-between gap-4">
           <div>
             <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
@@ -24,28 +25,28 @@ export default function SupplementsSection() {
           </div>
           <a
             href="#lab-tested"
-            className="hidden shrink-0 items-center gap-1.5 rounded-full bg-emerald px-5 py-2.5 text-sm font-semibold text-alabaster shadow-card transition-colors hover:bg-emerald-700 sm:inline-flex"
+            className="shine hidden shrink-0 items-center gap-1.5 rounded-full bg-emerald px-5 py-2.5 text-sm font-semibold text-alabaster shadow-glow-emerald transition-transform hover:-translate-y-0.5 sm:inline-flex"
           >
             Shop all
           </a>
         </div>
 
-        <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="perspective mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => (
             <article
               key={product.name}
-              className="group flex flex-col overflow-hidden rounded-xl2 border border-emerald/10 bg-alabaster shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
+              className="tilt group flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/60 shadow-float backdrop-blur"
             >
-              <div className="relative aspect-[4/3] bg-emerald/5">
-                <div className="absolute inset-0 grid place-items-center text-emerald/30">
-                  <FlaskConical className="h-12 w-12" strokeWidth={1.25} />
+              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-emerald/10 via-white/40 to-gold/10">
+                <div className="absolute inset-0 grid place-items-center text-emerald/40 transition-transform duration-500 group-hover:scale-110">
+                  <FlaskConical className="h-14 w-14" strokeWidth={1.1} />
                 </div>
                 {product.tag && (
-                  <span className="absolute left-3 top-3 rounded-full bg-gold/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
+                  <span className="absolute left-3 top-3 rounded-full bg-gold/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800 shadow-glow-gold">
                     {product.tag}
                   </span>
                 )}
-                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-alabaster/90 px-2 py-1 text-[10px] font-semibold text-emerald shadow-card backdrop-blur">
+                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-emerald shadow-float backdrop-blur">
                   <ShieldCheck className="h-3 w-3" />
                   CoA
                 </span>
@@ -74,7 +75,7 @@ export default function SupplementsSection() {
                   </span>
                   <button
                     aria-label={`Add ${product.name} to cart`}
-                    className="grid h-9 w-9 place-items-center rounded-full bg-emerald text-alabaster shadow-card transition-colors hover:bg-emerald-700"
+                    className="grid h-9 w-9 place-items-center rounded-full bg-emerald text-alabaster shadow-glow-emerald transition-transform hover:scale-110 hover:bg-emerald-700"
                   >
                     <Plus className="h-4 w-4" strokeWidth={2.5} />
                   </button>

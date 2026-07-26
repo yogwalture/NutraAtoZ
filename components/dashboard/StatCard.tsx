@@ -24,7 +24,7 @@ export default function StatCard({
         : "bg-primary/10 text-primary";
 
   return (
-    <div className="rounded-xl2 border border-border bg-card p-4 shadow-card sm:p-5">
+    <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-float backdrop-blur transition-transform hover:-translate-y-1 sm:p-5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">
           {label}
