@@ -38,7 +38,7 @@ export default function VendorOnboardingPage() {
           </h1>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
             Join our curated marketplace of lab-tested nutraceuticals. Complete
-            the three steps below — it takes about five minutes.
+            the five quick steps below — it takes about five minutes.
           </p>
         </div>
 
