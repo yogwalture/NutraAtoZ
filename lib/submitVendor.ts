@@ -9,7 +9,12 @@ export interface SubmitResult {
 
 /**
  * Uploads the FSSAI certificate to Supabase Storage, then inserts a
- * pending (is_approved = false) row into the `vendors` table.
+ * pending (is_approved = false) vendor row with the full nutraceuticals
+ * registration profile.
+ *
+ * NOTE (production): bank account details should be sent to Razorpay to
+ * create a linked account and NOT stored in plaintext. They are persisted
+ * here only for this scaffold — tokenize / vault them before going live.
  */
 export async function submitVendor(
   data: VendorOnboarding,
@@ -46,20 +51,39 @@ export async function submitVendor(
     const { data: inserted, error: insertError } = await supabase
       .from("vendors")
       .insert({
-        company_name: data.companyName,
-        store_name: data.storeName,
+        // business & contact
+        company_name: data.legalName,
+        store_name: data.brandName,
+        business_type: data.businessType,
+        cin: data.cin || null,
         contact_person: data.contactPerson,
+        designation: data.designation,
         contact_email: data.email,
         contact_phone: data.phone,
+        website: data.website || null,
         address_line: data.addressLine,
         city: data.city,
         state: data.state,
         pincode: data.pincode,
+        // tax
         gstin: data.gstin,
         pan: data.pan,
+        // compliance
+        vendor_role: data.vendorRole,
         fssai_license_no: data.fssaiLicense,
+        fssai_license_type: data.fssaiLicenseType,
         fssai_expiry: data.fssaiExpiry,
         fssai_certificate_url: publicUrl,
+        gmp_certified: data.gmpCertified,
+        iec_code: data.iec || null,
+        product_categories: data.productCategories,
+        // bank / payout
+        bank_account_holder: data.accountHolder,
+        bank_account_number: data.accountNumber,
+        bank_ifsc: data.ifsc,
+        bank_name: data.bankName,
+        // declaration + status
+        declaration_accepted: data.declarationAccepted,
         is_approved: false,
       })
       .select("id")
