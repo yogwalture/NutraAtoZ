@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Menu, X, Search, ShoppingBag, ChevronRight, Store } from "lucide-react";
 import Logo from "./Logo";
 import { navLinks } from "@/lib/data";
+import { useCart } from "@/components/cart/CartProvider";
 
 /**
  * Responsive site navigation.
@@ -13,7 +14,8 @@ import { navLinks } from "@/lib/data";
  */
 export default function SiteNav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [active, setActive] = useState("#home");
+  const [active, setActive] = useState("/");
+  const { count } = useCart();
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
@@ -55,15 +57,18 @@ export default function SiteNav() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <button
+            <a
+              href="/cart"
               aria-label="Cart"
               className="relative grid h-11 w-11 place-items-center rounded-full text-ink/70 transition-colors hover:bg-emerald/5 hover:text-emerald"
             >
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-[10px] font-bold text-emerald-800">
-                3
-              </span>
-            </button>
+              {count > 0 && (
+                <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-emerald-800">
+                  {count}
+                </span>
+              )}
+            </a>
             <a
               href="/vendor/onboarding"
               className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-emerald/20 px-5 py-2.5 text-sm font-semibold text-emerald transition-colors hover:bg-emerald/5"
@@ -98,15 +103,18 @@ export default function SiteNav() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <button
+            <a
+              href="/cart"
               aria-label="Cart"
               className="relative grid h-11 w-11 place-items-center rounded-xl text-ink/70 transition-colors hover:bg-emerald/5 hover:text-emerald"
             >
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded-full bg-gold text-[10px] font-bold text-emerald-800">
-                3
-              </span>
-            </button>
+              {count > 0 && (
+                <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-emerald-800">
+                  {count}
+                </span>
+              )}
+            </a>
           </div>
         </div>
       </header>
@@ -195,11 +203,16 @@ export default function SiteNav() {
                 className="group relative flex flex-1 flex-col items-center gap-1 py-2.5"
               >
                 <span
-                  className={`grid h-9 w-9 place-items-center rounded-full transition-all ${
+                  className={`relative grid h-9 w-9 place-items-center rounded-full transition-all ${
                     isActive ? "bg-emerald text-alabaster shadow-card" : "text-ink/60"
                   }`}
                 >
                   <Icon className="h-5 w-5" strokeWidth={2} />
+                  {link.label === "Cart" && count > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[9px] font-bold text-emerald-800">
+                      {count}
+                    </span>
+                  )}
                 </span>
                 <span
                   className={`text-[10px] font-medium transition-colors ${

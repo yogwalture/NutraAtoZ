@@ -15,11 +15,11 @@ export interface NavLink {
 }
 
 export const navLinks: NavLink[] = [
-  { label: "Home", href: "#home", icon: Home },
-  { label: "Categories", href: "#categories", icon: LayoutGrid },
-  { label: "Lab-Tested", href: "#lab-tested", icon: FlaskConical },
-  { label: "Cart", href: "#cart", icon: ShoppingBag },
-  { label: "Account", href: "#account", icon: User },
+  { label: "Home", href: "/", icon: Home },
+  { label: "Categories", href: "/#categories", icon: LayoutGrid },
+  { label: "Lab-Tested", href: "/products", icon: FlaskConical },
+  { label: "Cart", href: "/cart", icon: ShoppingBag },
+  { label: "Account", href: "/vendor/dashboard", icon: User },
 ];
 
 /** Placeholder data for the "Curated Wellness Categories" section. */

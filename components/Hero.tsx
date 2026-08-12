@@ -43,14 +43,20 @@ export default function Hero() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <button className="shine inline-flex items-center gap-2 rounded-full bg-emerald px-7 py-3.5 text-sm font-semibold text-alabaster shadow-glow-emerald transition-all hover:-translate-y-0.5 hover:bg-emerald-700">
+              <a
+                href="/products"
+                className="shine inline-flex items-center gap-2 rounded-full bg-emerald px-7 py-3.5 text-sm font-semibold text-alabaster shadow-glow-emerald transition-all hover:-translate-y-0.5 hover:bg-emerald-700"
+              >
                 Shop Supplements
                 <ArrowRight className="h-4 w-4" />
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/50 px-7 py-3.5 text-sm font-semibold text-emerald shadow-float backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/70">
+              </a>
+              <a
+                href="/#categories"
+                className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/50 px-7 py-3.5 text-sm font-semibold text-emerald shadow-float backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/70"
+              >
                 <Sparkles className="h-4 w-4" />
                 Explore Categories
-              </button>
+              </a>
             </div>
 
             <dl className="mt-10 grid max-w-md grid-cols-3 gap-3">

@@ -143,6 +143,32 @@ export default function Hero3D() {
       });
     }
 
+    // ---- Orbiting wireframe rings (futuristic accent) ----
+    const ringGold = new THREE.Mesh(
+      new THREE.TorusGeometry(2.5, 0.015, 8, 90),
+      new THREE.MeshBasicMaterial({
+        color: 0xc9a24b,
+        transparent: true,
+        opacity: 0.55,
+        wireframe: true,
+      })
+    );
+    ringGold.rotation.x = Math.PI / 2.3;
+    root.add(ringGold);
+
+    const ringEmerald = new THREE.Mesh(
+      new THREE.TorusGeometry(3.05, 0.012, 8, 100),
+      new THREE.MeshBasicMaterial({
+        color: 0x1f7a6c,
+        transparent: true,
+        opacity: 0.4,
+        wireframe: true,
+      })
+    );
+    ringEmerald.rotation.x = Math.PI / 1.7;
+    ringEmerald.rotation.y = Math.PI / 6;
+    root.add(ringEmerald);
+
     // ---- Interaction ----
     const pointer = { x: 0, y: 0 };
     const target = { x: 0, y: 0 };
@@ -184,6 +210,8 @@ export default function Hero3D() {
         capsuleGroup.rotation.y = t * 0.5;
         root.position.y = Math.sin(t * 0.8) * 0.12;
         particles.rotation.y = t * 0.15;
+        ringGold.rotation.z = t * 0.25;
+        ringEmerald.rotation.z = -t * 0.18;
       }
 
       root.rotation.y = pointer.x * 0.4;
