@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function CartPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-alabaster via-[hsl(48_30%_96%)] to-[hsl(168_24%_95%)]">
+    <div className="min-h-screen bg-gradient-to-b from-cream via-[hsl(28_100%_96%)] to-[hsl(340_65%_96%)]">
       <SiteNav />
       <main className="relative overflow-hidden pb-24 md:pb-0">
         <div className="orb orb-emerald left-[-6rem] top-0 h-64 w-64 animate-float-slow" />

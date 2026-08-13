@@ -85,7 +85,7 @@ export default function AdminShell({
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-alabaster via-[hsl(48_30%_96%)] to-[hsl(168_24%_95%)]">
+    <div className="min-h-screen bg-gradient-to-br from-cream via-[hsl(28_100%_96%)] to-[hsl(340_65%_96%)]">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/40 bg-white/60 shadow-float backdrop-blur-xl lg:flex">
         <div className="flex h-16 items-center border-b border-white/40 px-5">

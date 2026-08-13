@@ -4,10 +4,10 @@ import * as React from "react";
 import * as THREE from "three";
 
 /**
- * Interactive WebGL hero object: a glossy pharmaceutical capsule floating
- * inside a halo, orbited by gold particles. Auto-rotates and responds to
- * the pointer. Rendered on a transparent canvas so it floats over the
- * hero's gradient. Client-only (uses WebGL); import with ssr:false.
+ * Citrus hero object: a glossy cluster of vitamin capsules + gummy spheres in
+ * coral / berry / amber, floating over a soft gradient card. Bright studio
+ * lighting so the glossy shapes pop on the light theme. Balanced motion:
+ * gentle auto-rotation + pointer parallax. Client-only (WebGL); ssr:false.
  */
 export default function Hero3D() {
   const mountRef = React.useRef<HTMLDivElement>(null);
@@ -21,8 +21,8 @@ export default function Hero3D() {
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(0, 0, 7.5);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(0, 0, 8);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -34,140 +34,166 @@ export default function Hero3D() {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     mount.appendChild(renderer.domElement);
 
-    // ---- Lighting ----
-    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    // ---- Bright, warm studio lighting ----
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
 
-    const key = new THREE.DirectionalLight(0xffffff, 2.2);
-    key.position.set(4, 6, 5);
+    const key = new THREE.DirectionalLight(0xffffff, 2.6);
+    key.position.set(5, 7, 6);
     scene.add(key);
 
-    const gold = new THREE.PointLight(0xf0cd83, 3.5, 30);
-    gold.position.set(-4, -2, 4);
-    scene.add(gold);
+    const coralLight = new THREE.PointLight(0xff6b4a, 3.2, 40);
+    coralLight.position.set(-5, -1, 5);
+    scene.add(coralLight);
 
-    const rim = new THREE.PointLight(0x1f7a6c, 3, 30);
-    rim.position.set(3, -3, -4);
-    scene.add(rim);
+    const berryLight = new THREE.PointLight(0xe63980, 2.6, 40);
+    berryLight.position.set(4, -4, -3);
+    scene.add(berryLight);
+
+    const amberLight = new THREE.PointLight(0xffb020, 2.4, 40);
+    amberLight.position.set(0, 5, -4);
+    scene.add(amberLight);
 
     // ---- Root group ----
     const root = new THREE.Group();
     scene.add(root);
 
-    // Halo glow behind the capsule
+    // soft halo behind the cluster
     const halo = new THREE.Mesh(
-      new THREE.SphereGeometry(2.15, 48, 48),
+      new THREE.SphereGeometry(2.6, 48, 48),
       new THREE.MeshBasicMaterial({
-        color: 0x0f4c43,
+        color: 0xffb020,
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.1,
       })
     );
     root.add(halo);
 
-    // ---- Capsule (two-tone glossy pill) ----
-    const capsuleGroup = new THREE.Group();
-    capsuleGroup.rotation.z = Math.PI / 5;
-    root.add(capsuleGroup);
+    function glossy(color: number, emissive: number) {
+      return new THREE.MeshPhysicalMaterial({
+        color,
+        roughness: 0.16,
+        metalness: 0.05,
+        clearcoat: 1,
+        clearcoatRoughness: 0.12,
+        emissive,
+        emissiveIntensity: 0.25,
+      });
+    }
 
-    const emeraldMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0f4c43,
-      roughness: 0.18,
+    const coralMat = glossy(0xff6b4a, 0x5a1a0d);
+    const berryMat = glossy(0xe63980, 0x4a1030);
+    const amberMat = glossy(0xffb020, 0x5a3a00);
+    const creamMat = new THREE.MeshPhysicalMaterial({
+      color: 0xfff3e6,
+      roughness: 0.25,
       metalness: 0.1,
       clearcoat: 1,
-      clearcoatRoughness: 0.15,
-      emissive: 0x08221d,
-      emissiveIntensity: 0.35,
-    });
-    const goldMat = new THREE.MeshPhysicalMaterial({
-      color: 0xc9a24b,
-      roughness: 0.22,
-      metalness: 0.55,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.2,
-      emissive: 0x6e5220,
-      emissiveIntensity: 0.3,
     });
 
-    // Body: full capsule (emerald), then a shorter gold cap over one half.
-    const body = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.85, 1.9, 24, 48),
-      emeraldMat
-    );
-    capsuleGroup.add(body);
+    // ---- Central coral capsule (two-tone with cream cap) ----
+    const capsule = new THREE.Group();
+    capsule.rotation.z = Math.PI / 5;
+    capsule.position.set(-0.25, 0.15, 0);
+    root.add(capsule);
 
-    // Gold half-shell (slightly larger radius) covering the top half.
-    const goldCap = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.865, 1.9, 24, 48),
-      goldMat
+    const capBody = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.82, 1.7, 24, 48),
+      coralMat
     );
-    // Clip the gold to the top half using a plane on the material.
-    goldMat.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), 0)];
+    capsule.add(capBody);
+
+    const creamCap = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.835, 1.7, 24, 48),
+      creamMat
+    );
+    creamMat.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), 0)];
     renderer.localClippingEnabled = true;
-    capsuleGroup.add(goldCap);
+    capsule.add(creamCap);
 
-    // Thin seam ring where the two halves meet.
     const seam = new THREE.Mesh(
-      new THREE.TorusGeometry(0.87, 0.03, 16, 64),
+      new THREE.TorusGeometry(0.84, 0.028, 16, 64),
       new THREE.MeshStandardMaterial({
-        color: 0xfaf9f6,
+        color: 0xffffff,
         roughness: 0.4,
         metalness: 0.2,
       })
     );
     seam.rotation.x = Math.PI / 2;
-    capsuleGroup.add(seam);
+    capsule.add(seam);
 
-    // ---- Orbiting gold particles ----
+    // ---- Gummy spheres (berry + amber) ----
+    const berryBall = new THREE.Mesh(
+      new THREE.SphereGeometry(0.78, 48, 48),
+      berryMat
+    );
+    berryBall.position.set(1.85, 1.25, 0.4);
+    root.add(berryBall);
+
+    const amberBall = new THREE.Mesh(
+      new THREE.SphereGeometry(0.62, 48, 48),
+      amberMat
+    );
+    amberBall.position.set(1.65, -1.35, -0.2);
+    root.add(amberBall);
+
+    const coralBall = new THREE.Mesh(
+      new THREE.SphereGeometry(0.42, 40, 40),
+      coralMat
+    );
+    coralBall.position.set(-1.9, -1.5, 0.5);
+    root.add(coralBall);
+
+    // gentle bob targets for the balls
+    const bobbers: { mesh: THREE.Mesh; baseY: number; amp: number; speed: number; phase: number }[] =
+      [
+        { mesh: berryBall, baseY: 1.25, amp: 0.18, speed: 0.9, phase: 0 },
+        { mesh: amberBall, baseY: -1.35, amp: 0.22, speed: 1.1, phase: 1.5 },
+        { mesh: coralBall, baseY: -1.5, amp: 0.2, speed: 0.8, phase: 3 },
+      ];
+
+    // ---- Orbiting sparkle particles ----
     const particles = new THREE.Group();
     root.add(particles);
-    const particleMat = new THREE.MeshStandardMaterial({
-      color: 0xc9a24b,
-      emissive: 0xc9a24b,
-      emissiveIntensity: 0.6,
+    const sparkMat = new THREE.MeshStandardMaterial({
+      color: 0xffd27a,
+      emissive: 0xffb020,
+      emissiveIntensity: 0.7,
       roughness: 0.3,
-      metalness: 0.6,
+      metalness: 0.4,
     });
-    const orbits: { mesh: THREE.Mesh; r: number; speed: number; phase: number; tilt: number; y: number }[] =
-      [];
-    for (let i = 0; i < 7; i++) {
-      const s = 0.05 + Math.random() * 0.07;
-      const m = new THREE.Mesh(new THREE.SphereGeometry(s, 16, 16), particleMat);
+    const orbits: {
+      mesh: THREE.Mesh;
+      r: number;
+      speed: number;
+      phase: number;
+      tilt: number;
+      y: number;
+    }[] = [];
+    for (let i = 0; i < 9; i++) {
+      const s = 0.04 + Math.random() * 0.06;
+      const m = new THREE.Mesh(new THREE.SphereGeometry(s, 14, 14), sparkMat);
       particles.add(m);
       orbits.push({
         mesh: m,
-        r: 2.4 + Math.random() * 1.1,
-        speed: 0.25 + Math.random() * 0.4,
+        r: 2.8 + Math.random() * 1.2,
+        speed: 0.2 + Math.random() * 0.4,
         phase: Math.random() * Math.PI * 2,
-        tilt: (Math.random() - 0.5) * 1.2,
-        y: (Math.random() - 0.5) * 1.8,
+        tilt: (Math.random() - 0.5) * 1.4,
+        y: (Math.random() - 0.5) * 2.2,
       });
     }
 
-    // ---- Orbiting wireframe rings (futuristic accent) ----
-    const ringGold = new THREE.Mesh(
-      new THREE.TorusGeometry(2.5, 0.015, 8, 90),
+    // ---- Thin orbiting ring ----
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(3.15, 0.012, 8, 120),
       new THREE.MeshBasicMaterial({
-        color: 0xc9a24b,
+        color: 0xe63980,
         transparent: true,
-        opacity: 0.55,
-        wireframe: true,
+        opacity: 0.5,
       })
     );
-    ringGold.rotation.x = Math.PI / 2.3;
-    root.add(ringGold);
-
-    const ringEmerald = new THREE.Mesh(
-      new THREE.TorusGeometry(3.05, 0.012, 8, 100),
-      new THREE.MeshBasicMaterial({
-        color: 0x1f7a6c,
-        transparent: true,
-        opacity: 0.4,
-        wireframe: true,
-      })
-    );
-    ringEmerald.rotation.x = Math.PI / 1.7;
-    ringEmerald.rotation.y = Math.PI / 6;
-    root.add(ringEmerald);
+    ring.rotation.x = Math.PI / 2.2;
+    root.add(ring);
 
     // ---- Interaction ----
     const pointer = { x: 0, y: 0 };
@@ -207,15 +233,19 @@ export default function Hero3D() {
       pointer.y += (target.y - pointer.y) * 0.05;
 
       if (!prefersReduced) {
-        capsuleGroup.rotation.y = t * 0.5;
-        root.position.y = Math.sin(t * 0.8) * 0.12;
-        particles.rotation.y = t * 0.15;
-        ringGold.rotation.z = t * 0.25;
-        ringEmerald.rotation.z = -t * 0.18;
+        capsule.rotation.y = t * 0.45;
+        root.position.y = Math.sin(t * 0.8) * 0.1;
+        particles.rotation.y = t * 0.12;
+        ring.rotation.z = t * 0.22;
+        berryBall.rotation.y = t * 0.4;
+        amberBall.rotation.y = -t * 0.5;
+        bobbers.forEach((b) => {
+          b.mesh.position.y = b.baseY + Math.sin(t * b.speed + b.phase) * b.amp;
+        });
       }
 
-      root.rotation.y = pointer.x * 0.4;
-      root.rotation.x = pointer.y * 0.3;
+      root.rotation.y = pointer.x * 0.35;
+      root.rotation.x = pointer.y * 0.25;
       halo.scale.setScalar(1 + Math.sin(t * 1.4) * 0.03);
 
       orbits.forEach((o) => {
@@ -255,7 +285,7 @@ export default function Hero3D() {
       ref={mountRef}
       aria-hidden="true"
       className="h-full w-full"
-      style={{ minHeight: 320 }}
+      style={{ minHeight: 340 }}
     />
   );
 }

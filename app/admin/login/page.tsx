@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="relative grid min-h-screen place-items-center overflow-hidden bg-gradient-to-br from-alabaster via-[hsl(48_30%_96%)] to-[hsl(168_24%_95%)] px-5">
+    <div className="relative grid min-h-screen place-items-center overflow-hidden bg-gradient-to-br from-cream via-[hsl(28_100%_96%)] to-[hsl(340_65%_96%)] px-5">
       <div className="orb orb-emerald left-[-6rem] top-[-4rem] h-72 w-72 animate-float-slow" />
       <div className="orb orb-gold bottom-[-4rem] right-[-4rem] h-64 w-64 animate-float" />
       <div className="absolute inset-0 bg-grain" />

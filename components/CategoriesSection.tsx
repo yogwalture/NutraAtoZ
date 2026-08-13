@@ -10,63 +10,77 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { categories } from "@/lib/data";
+import RevealOnScroll from "./RevealOnScroll";
 
 const ICONS: LucideIcon[] = [Shield, Sprout, Moon, Zap, Bone, Sparkles];
 
+// Rotating vibrant tile themes.
+const THEMES = [
+  { tile: "bg-gradient-to-br from-coral-500 to-berry-500", ring: "group-hover:ring-coral/30" },
+  { tile: "bg-gradient-to-br from-amber-500 to-coral-500", ring: "group-hover:ring-amber/30" },
+  { tile: "bg-gradient-to-br from-berry-500 to-plum", ring: "group-hover:ring-berry/30" },
+  { tile: "bg-gradient-to-br from-coral-500 to-amber-500", ring: "group-hover:ring-coral/30" },
+  { tile: "bg-gradient-to-br from-berry-500 to-coral-500", ring: "group-hover:ring-berry/30" },
+  { tile: "bg-gradient-to-br from-amber-500 to-berry-500", ring: "group-hover:ring-amber/30" },
+];
+
 export default function CategoriesSection() {
   return (
-    <section
-      id="categories"
-      className="relative overflow-hidden py-14 sm:py-20"
-    >
-      <div className="orb orb-gold right-[-5rem] top-10 h-56 w-56 animate-float" />
+    <section id="categories" className="relative overflow-hidden py-16 sm:py-24">
+      <div className="orb orb-amber right-[-5rem] top-10 h-56 w-56 animate-float opacity-40" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="flex items-end justify-between gap-4">
+        <RevealOnScroll className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+            <span className="inline-flex items-center gap-2 rounded-full bg-berry/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-berry">
               <LayoutGrid className="h-4 w-4" />
               Explore
             </span>
-            <h2 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-emerald sm:text-4xl">
-              Curated Wellness Categories
+            <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
+              Curated Wellness{" "}
+              <span className="text-gradient">Categories</span>
             </h2>
-            <p className="mt-2 max-w-lg text-sm text-mist sm:text-base">
+            <p className="mt-3 max-w-lg text-sm text-mist sm:text-base">
               Hand-picked collections, organized by the goals that matter most
               to you.
             </p>
           </div>
           <a
-            href="#categories"
-            className="hidden shrink-0 items-center gap-1.5 rounded-full border border-white/60 bg-white/50 px-5 py-2.5 text-sm font-semibold text-emerald shadow-float backdrop-blur transition-colors hover:bg-white/70 sm:inline-flex"
+            href="/products"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-coral/25 bg-white/70 px-5 py-2.5 text-sm font-bold text-coral-700 shadow-float backdrop-blur transition-colors hover:bg-white"
           >
             View all
             <ArrowUpRight className="h-4 w-4" />
           </a>
-        </div>
+        </RevealOnScroll>
 
-        <div className="perspective mt-9 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="perspective mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           {categories.map((cat, i) => {
             const Icon = ICONS[i % ICONS.length];
+            const theme = THEMES[i % THEMES.length];
             return (
-              <a
-                key={cat.name}
-                href="#categories"
-                className="tilt shine group flex flex-col justify-between rounded-2xl border border-white/60 bg-white/55 p-5 shadow-float backdrop-blur"
-              >
-                <div className="tilt-inner">
-                  <div className="mb-4 grid aspect-square place-items-center rounded-xl bg-gradient-to-br from-emerald/10 to-gold/10 text-emerald transition-colors group-hover:from-emerald/20">
-                    <Icon className="h-8 w-8" strokeWidth={1.5} />
+              <RevealOnScroll key={cat.name} delay={i * 70}>
+                <a
+                  href="/products"
+                  className={`tilt group flex h-full flex-col justify-between rounded-3xl border border-white/70 bg-white p-5 shadow-card ring-2 ring-transparent transition-all ${theme.ring}`}
+                >
+                  <div className="tilt-inner">
+                    <div
+                      className={`mb-4 grid aspect-square place-items-center rounded-2xl text-white shadow-glow-coral transition-transform duration-300 group-hover:scale-105 ${theme.tile}`}
+                    >
+                      <Icon className="h-8 w-8" strokeWidth={1.8} />
+                    </div>
+                    <h3 className="text-sm font-bold leading-snug text-ink">
+                      {cat.name}
+                    </h3>
+                    <p className="mt-1 text-xs text-mist">{cat.tagline}</p>
+                    <p className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-coral-600">
+                      {cat.count} products
+                      <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </p>
                   </div>
-                  <h3 className="text-sm font-semibold leading-snug text-ink">
-                    {cat.name}
-                  </h3>
-                  <p className="mt-1 text-xs text-mist">{cat.tagline}</p>
-                  <p className="mt-3 text-xs font-medium text-emerald">
-                    {cat.count} products
-                  </p>
-                </div>
-              </a>
+                </a>
+              </RevealOnScroll>
             );
           })}
         </div>

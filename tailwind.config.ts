@@ -9,19 +9,52 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ----- Brand palette (named tokens) -----
-        alabaster: "#FAF9F6",
-        emerald: {
-          DEFAULT: "#0F4C43",
-          50: "#EAF2F0",
-          100: "#D2E3DF",
-          600: "#0F4C43",
-          700: "#0B3A33",
-          800: "#082A25",
+        // ===== Brand palette — Vibrant Citrus + Berry =====
+        // Warm cream canvas
+        alabaster: "#FFF8F0",
+        cream: "#FFF8F0",
+
+        // NEW explicit accent tokens (use these in new components)
+        coral: {
+          DEFAULT: "#FF6B4A",
+          50: "#FFF1EC",
+          100: "#FFDDD1",
+          200: "#FFBCA6",
+          500: "#FF6B4A",
+          600: "#F5502E",
+          700: "#D93C1D",
         },
-        gold: "#C9A24B",
-        ink: "#1C2421",
-        mist: "#6B756F",
+        berry: {
+          DEFAULT: "#E63980",
+          50: "#FDE9F1",
+          100: "#FBD0E1",
+          500: "#E63980",
+          600: "#CE2870",
+          700: "#A81A58",
+        },
+        amber: {
+          DEFAULT: "#FFB020",
+          50: "#FFF6E2",
+          100: "#FFE9B8",
+          500: "#FFB020",
+          600: "#F59300",
+        },
+        plum: "#5B1E52",
+
+        // ===== Legacy token names, REMAPPED to the citrus palette =====
+        // Existing pages/components reference `emerald` (primary) and `gold`
+        // (accent); remapping their values recolors the whole app at once.
+        emerald: {
+          DEFAULT: "#FF6B4A", // primary → coral
+          50: "#FFF1EC",
+          100: "#FFDDD1",
+          600: "#FF6B4A",
+          700: "#F5502E",
+          800: "#D93C1D",
+        },
+        gold: "#E63980", // accent → berry
+        ink: "#2A1A14", // warm espresso text
+        mist: "#9A7B6E", // warm muted text
 
         // ----- shadcn/ui semantic tokens (HSL CSS vars) -----
         border: "hsl(var(--border))",
@@ -59,12 +92,13 @@ const config: Config = {
         serif: ["var(--font-fraunces)", "Georgia", "serif"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(16,40,36,0.04), 0 8px 24px rgba(16,40,36,0.06)",
+        card: "0 2px 6px rgba(217,60,29,0.06), 0 12px 32px rgba(217,60,29,0.08)",
         "card-hover":
-          "0 2px 4px rgba(16,40,36,0.06), 0 16px 40px rgba(16,40,36,0.10)",
-        bar: "0 -1px 0 rgba(16,40,36,0.06), 0 -8px 24px rgba(16,40,36,0.06)",
+          "0 4px 10px rgba(217,60,29,0.10), 0 22px 50px rgba(217,60,29,0.16)",
+        bar: "0 -1px 0 rgba(217,60,29,0.06), 0 -10px 30px rgba(217,60,29,0.08)",
       },
       borderRadius: {
+        xl3: "2rem",
         xl2: "1.25rem",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

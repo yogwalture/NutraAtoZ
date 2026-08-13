@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function VendorOnboardingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-alabaster via-[hsl(48_30%_96%)] to-[hsl(168_24%_95%)]">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-cream via-[hsl(28_100%_96%)] to-[hsl(340_65%_96%)]">
       <div className="orb orb-emerald left-[-6rem] top-10 h-72 w-72 animate-float-slow" />
       <div className="orb orb-gold right-[-5rem] top-1/2 h-64 w-64 animate-float" />
       <div className="absolute inset-0 bg-grain" />

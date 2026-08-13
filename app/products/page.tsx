@@ -15,7 +15,7 @@ export default async function ProductsPage() {
   const products = await getStoreProducts(60);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-alabaster via-[hsl(48_30%_96%)] to-[hsl(168_24%_95%)]">
+    <div className="min-h-screen bg-gradient-to-b from-cream via-[hsl(28_100%_96%)] to-[hsl(340_65%_96%)]">
       <SiteNav />
       <main className="pb-24 md:pb-0">
         <section className="relative overflow-hidden">

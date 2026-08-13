@@ -44,3 +44,7 @@ yarn-error.log*
 *.swp
 *.swo
 Thumbs.db
+
+# sandbox temp
+._*
+._tscheck.json
