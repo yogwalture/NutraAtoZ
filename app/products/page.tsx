@@ -47,22 +47,27 @@ export default async function ProductsPage() {
                 {products.map((product) => (
                   <article
                     key={product.id}
-                    className="tilt group flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/60 shadow-float backdrop-blur"
+                    className="tilt group flex flex-col overflow-hidden rounded-3xl border border-white/70 bg-white shadow-card"
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-emerald/10 via-white/40 to-gold/10">
-                      <div className="absolute inset-0 grid place-items-center text-emerald/40 transition-transform duration-500 group-hover:scale-110">
-                        <FlaskConical className="h-14 w-14" strokeWidth={1.1} />
+                    <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-coral-500/25 via-white to-berry-500/25 text-coral-600">
+                      <div className="absolute inset-0 grid place-items-center transition-transform duration-500 group-hover:scale-110">
+                        <FlaskConical className="h-16 w-16" strokeWidth={1.1} />
                       </div>
-                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-emerald shadow-float backdrop-blur">
+                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-coral-600 shadow-float backdrop-blur">
                         <ShieldCheck className="h-3 w-3" />
                         CoA
                       </span>
+                      {product.discount && (
+                        <span className="absolute left-3 top-3 rounded-full bg-citrus-gradient px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-glow-berry">
+                          {product.discount}
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-1 flex-col p-4">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-mist">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-berry">
                         {product.brand}
                       </p>
-                      <h3 className="mt-1 text-sm font-semibold leading-snug text-ink">
+                      <h3 className="mt-1 text-sm font-bold leading-snug text-ink">
                         {product.title}
                       </h3>
                       {product.description && (
@@ -70,9 +75,28 @@ export default async function ProductsPage() {
                           {product.description}
                         </p>
                       )}
+                      {product.attributes && product.attributes.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {product.attributes.slice(0, 4).map((a) => (
+                            <span
+                              key={a.label}
+                              className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-coral-700"
+                            >
+                              {a.label}: {a.value}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <div className="mt-auto flex items-center justify-between pt-4">
-                        <span className="font-serif text-lg font-semibold text-emerald">
-                          ₹{product.price.toLocaleString("en-IN")}
+                        <span className="flex items-baseline gap-1.5">
+                          <span className="font-serif text-lg font-semibold text-ink">
+                            ₹{product.price.toLocaleString("en-IN")}
+                          </span>
+                          {product.discount && (
+                            <span className="text-xs text-mist line-through">
+                              ₹{product.mrp.toLocaleString("en-IN")}
+                            </span>
+                          )}
                         </span>
                         <AddToCartButton
                           id={product.id}

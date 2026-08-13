@@ -64,6 +64,11 @@ export default function SupplementsSection({
                         <ShieldCheck className="h-3 w-3" />
                         CoA
                       </span>
+                      {product.discount && (
+                        <span className="absolute left-3 top-3 rounded-full bg-citrus-gradient px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-glow-berry">
+                          {product.discount}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex flex-1 flex-col p-4">
@@ -73,15 +78,33 @@ export default function SupplementsSection({
                       <h3 className="mt-1 text-sm font-bold leading-snug text-ink">
                         {product.title}
                       </h3>
-                      {product.weight_gms ? (
+                      {product.attributes && product.attributes.length > 0 ? (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {product.attributes.slice(0, 3).map((a) => (
+                            <span
+                              key={a.label}
+                              className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-coral-700"
+                            >
+                              {a.value}
+                            </span>
+                          ))}
+                        </div>
+                      ) : product.weight_gms ? (
                         <p className="mt-1 text-xs text-mist">
                           {product.weight_gms} g
                         </p>
                       ) : null}
 
                       <div className="mt-auto flex items-center justify-between pt-4">
-                        <span className="font-serif text-lg font-semibold text-ink">
-                          ₹{product.price.toLocaleString("en-IN")}
+                        <span className="flex items-baseline gap-1.5">
+                          <span className="font-serif text-lg font-semibold text-ink">
+                            ₹{product.price.toLocaleString("en-IN")}
+                          </span>
+                          {product.discount && (
+                            <span className="text-xs text-mist line-through">
+                              ₹{product.mrp.toLocaleString("en-IN")}
+                            </span>
+                          )}
                         </span>
                         <AddToCartButton
                           id={product.id}

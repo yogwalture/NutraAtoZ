@@ -24,6 +24,8 @@ export interface VendorContext {
   vendorId: string | null;
 }
 
+import { parseAttributes, type DiscountType, type ProductAttribute } from "./pricing";
+
 export interface ProductRow {
   id: string;
   vendor_id: string;
@@ -35,6 +37,9 @@ export interface ProductRow {
   weight_gms: number | null;
   ingredients: string | null;
   lab_tested_url: string | null;
+  discount_type: DiscountType;
+  discount_value: number | null;
+  attributes: ProductAttribute[];
   is_active: boolean | null;
   created_at?: string | null;
 }
@@ -98,11 +103,14 @@ export async function getVendorProducts(
   const { data } = await supabaseAdmin
     .from("products")
     .select(
-      "id, vendor_id, title, description, price, commission_pct, stock, weight_gms, ingredients, lab_tested_url, is_active, created_at"
+      "id, vendor_id, title, description, price, commission_pct, stock, weight_gms, ingredients, lab_tested_url, discount_type, discount_value, attributes, is_active, created_at"
     )
     .eq("vendor_id", vendorId)
     .order("created_at", { ascending: false });
-  return (data as ProductRow[]) ?? [];
+  return ((data as Record<string, unknown>[]) ?? []).map((p) => ({
+    ...(p as unknown as ProductRow),
+    attributes: parseAttributes(p.attributes),
+  }));
 }
 
 /** Joins order_items to their parent order (status, date) in JS. */

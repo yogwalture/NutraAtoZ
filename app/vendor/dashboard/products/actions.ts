@@ -3,47 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getVendorContext } from "@/lib/vendorData";
+import { parseProduct } from "@/lib/productForm";
 
 export interface ActionResult {
   ok: boolean;
   error?: string;
-}
-
-function num(value: FormDataEntryValue | null): number | null {
-  if (value == null || value === "") return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function parseProduct(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim();
-  const price = num(formData.get("price"));
-  const commission_pct = num(formData.get("commission_pct"));
-  const stock = num(formData.get("stock"));
-  const weight_gms = num(formData.get("weight_gms"));
-  const description = String(formData.get("description") ?? "").trim() || null;
-  const ingredients = String(formData.get("ingredients") ?? "").trim() || null;
-  const lab_tested_url =
-    String(formData.get("lab_tested_url") ?? "").trim() || null;
-
-  if (title.length < 2) return { error: "Title is required." as const };
-  if (price == null || price < 0)
-    return { error: "Enter a valid price." as const };
-  if (commission_pct != null && (commission_pct < 0 || commission_pct > 100))
-    return { error: "Commission % must be between 0 and 100." as const };
-
-  return {
-    values: {
-      title,
-      price,
-      commission_pct,
-      stock,
-      weight_gms,
-      description,
-      ingredients,
-      lab_tested_url,
-    },
-  };
 }
 
 export async function createProduct(formData: FormData): Promise<ActionResult> {
@@ -62,6 +26,8 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
 
   revalidatePath("/vendor/dashboard/products");
   revalidatePath("/vendor/dashboard");
+  revalidatePath("/");
+  revalidatePath("/products");
   return { ok: true };
 }
 
@@ -83,6 +49,8 @@ export async function updateProduct(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/vendor/dashboard/products");
+  revalidatePath("/");
+  revalidatePath("/products");
   return { ok: true };
 }
 
@@ -101,6 +69,8 @@ export async function toggleProductActive(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/vendor/dashboard/products");
+  revalidatePath("/");
+  revalidatePath("/products");
   return { ok: true };
 }
 
@@ -117,5 +87,7 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 
   revalidatePath("/vendor/dashboard/products");
   revalidatePath("/vendor/dashboard");
+  revalidatePath("/");
+  revalidatePath("/products");
   return { ok: true };
 }

@@ -12,6 +12,7 @@ import {
   Package,
   AlertCircle,
   FlaskConical,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatINR } from "@/lib/format";
+import {
+  effectivePrice,
+  discountLabel,
+  type DiscountType,
+  type ProductAttribute,
+} from "@/lib/pricing";
 import type { ProductRow } from "@/lib/vendorData";
 import {
   createProduct,
@@ -40,20 +47,45 @@ export default function ProductsManager({
   const [pending, startTransition] = React.useTransition();
   const [busyId, setBusyId] = React.useState<string | null>(null);
 
+  // form-local state for discount + attributes
+  const [discountType, setDiscountType] = React.useState<DiscountType>(null);
+  const [attrs, setAttrs] = React.useState<ProductAttribute[]>([]);
+
+  function resetForm(p: ProductRow | null) {
+    setDiscountType(p?.discount_type ?? null);
+    setAttrs(p?.attributes && p.attributes.length ? p.attributes : []);
+  }
+
   function openCreate() {
     setEditing(null);
+    resetForm(null);
     setError(undefined);
     setOpen(true);
   }
   function openEdit(p: ProductRow) {
     setEditing(p);
+    resetForm(p);
     setError(undefined);
     setOpen(true);
+  }
+
+  function addAttr() {
+    setAttrs((a) => [...a, { label: "", value: "" }]);
+  }
+  function updateAttr(i: number, key: "label" | "value", val: string) {
+    setAttrs((a) => a.map((row, idx) => (idx === i ? { ...row, [key]: val } : row)));
+  }
+  function removeAttr(i: number) {
+    setAttrs((a) => a.filter((_, idx) => idx !== i));
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    fd.set(
+      "attributes",
+      JSON.stringify(attrs.filter((a) => a.label.trim() && a.value.trim()))
+    );
     setError(undefined);
     startTransition(async () => {
       const res = editing
@@ -90,7 +122,7 @@ export default function ProductsManager({
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {products.length} product{products.length === 1 ? "" : "s"} in your
-            catalog
+            catalog · live on the store as soon as you add them
           </p>
         </div>
         <Button onClick={openCreate} disabled={!canEdit}>
@@ -119,22 +151,28 @@ export default function ProductsManager({
         ) : (
           <>
             <div className="hidden grid-cols-12 gap-3 border-b border-border px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground sm:grid">
-              <span className="col-span-5">Product</span>
-              <span className="col-span-2">Price</span>
-              <span className="col-span-2">Commission</span>
-              <span className="col-span-1">Stock</span>
+              <span className="col-span-4">Product</span>
+              <span className="col-span-3">Price</span>
+              <span className="col-span-1">Comm.</span>
+              <span className="col-span-2">Stock</span>
               <span className="col-span-2 text-right">Actions</span>
             </div>
             <div className="divide-y divide-border">
               {products.map((p) => {
                 const active = p.is_active !== false;
                 const rowBusy = busyId === p.id && pending;
+                const dLabel = discountLabel(p.discount_type, p.discount_value);
+                const eff = effectivePrice(
+                  p.price,
+                  p.discount_type,
+                  p.discount_value
+                );
                 return (
                   <div
                     key={p.id}
                     className="grid grid-cols-1 items-center gap-3 px-5 py-3.5 sm:grid-cols-12"
                   >
-                    <div className="col-span-5 flex items-center gap-3">
+                    <div className="col-span-4 flex items-center gap-3">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/5 text-primary/50">
                         <FlaskConical className="h-5 w-5" strokeWidth={1.5} />
                       </span>
@@ -142,25 +180,41 @@ export default function ProductsManager({
                         <p className="truncate text-sm font-medium text-foreground">
                           {p.title}
                         </p>
-                        <div className="mt-0.5 flex items-center gap-2">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                           <Badge variant={active ? "success" : "muted"}>
                             {active ? "Active" : "Hidden"}
                           </Badge>
-                          {p.weight_gms ? (
+                          {p.attributes?.length ? (
                             <span className="text-xs text-muted-foreground">
-                              {p.weight_gms} g
+                              {p.attributes.length} attr
                             </span>
                           ) : null}
                         </div>
                       </div>
                     </div>
-                    <div className="col-span-2 text-sm font-medium text-foreground">
-                      {formatINR(p.price)}
-                    </div>
-                    <div className="col-span-2 text-sm text-muted-foreground">
-                      {p.commission_pct != null ? `${p.commission_pct}%` : "—"}
+                    <div className="col-span-3 text-sm">
+                      {dLabel ? (
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">
+                            {formatINR(eff)}
+                          </span>
+                          <span className="text-xs text-muted-foreground line-through">
+                            {formatINR(p.price)}
+                          </span>
+                          <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-accent">
+                            {dLabel}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-medium text-foreground">
+                          {formatINR(p.price)}
+                        </span>
+                      )}
                     </div>
                     <div className="col-span-1 text-sm text-muted-foreground">
+                      {p.commission_pct != null ? `${p.commission_pct}%` : "—"}
+                    </div>
+                    <div className="col-span-2 text-sm text-muted-foreground">
                       {p.stock ?? "—"}
                     </div>
                     <div className="col-span-2 flex items-center justify-end gap-1">
@@ -205,13 +259,13 @@ export default function ProductsManager({
 
       {/* ---------- Add / edit modal ---------- */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-emerald-800/30 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-plum/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
           <div
             className="absolute inset-0"
             onClick={() => !pending && setOpen(false)}
           />
           <div className="relative z-10 max-h-[92vh] w-full overflow-y-auto rounded-t-xl2 border border-border bg-card shadow-card-hover sm:max-w-lg sm:rounded-xl2">
-            <div className="sticky top-0 flex items-center justify-between border-b border-border bg-card px-5 py-4">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-5 py-4">
               <h2 className="font-serif text-lg font-semibold text-primary">
                 {editing ? "Edit product" : "Add product"}
               </h2>
@@ -238,7 +292,7 @@ export default function ProductsManager({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="price">Price (₹)</Label>
+                  <Label htmlFor="price">Rate / Price (₹)</Label>
                   <Input
                     id="price"
                     name="price"
@@ -264,7 +318,7 @@ export default function ProductsManager({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="stock">Stock</Label>
+                  <Label htmlFor="stock">Quantity in stock</Label>
                   <Input
                     id="stock"
                     name="stock"
@@ -285,6 +339,86 @@ export default function ProductsManager({
                     placeholder="250"
                   />
                 </div>
+              </div>
+
+              {/* Discount */}
+              <div className="rounded-xl border border-border bg-secondary/40 p-3.5">
+                <Label className="flex items-center gap-1.5">
+                  <Tag className="h-3.5 w-3.5 text-accent" />
+                  Discount (optional)
+                </Label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <select
+                    name="discount_type"
+                    value={discountType ?? ""}
+                    onChange={(e) =>
+                      setDiscountType(
+                        (e.target.value || null) as DiscountType
+                      )
+                    }
+                    className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="">No discount</option>
+                    <option value="PCT">Percentage (%)</option>
+                    <option value="FLAT">Flat (₹)</option>
+                  </select>
+                  <Input
+                    name="discount_value"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    disabled={!discountType}
+                    defaultValue={editing?.discount_value ?? ""}
+                    placeholder={discountType === "FLAT" ? "₹ off" : "% off"}
+                  />
+                </div>
+              </div>
+
+              {/* Attributes repeater */}
+              <div className="rounded-xl border border-border bg-secondary/40 p-3.5">
+                <div className="flex items-center justify-between">
+                  <Label>Attributes (flavour, form, servings…)</Label>
+                  <button
+                    type="button"
+                    onClick={addAttr}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/5"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add
+                  </button>
+                </div>
+                {attrs.length === 0 ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    No attributes yet. Add key–value details buyers care about.
+                  </p>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    {attrs.map((a, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <Input
+                          value={a.label}
+                          onChange={(e) => updateAttr(i, "label", e.target.value)}
+                          placeholder="Flavour"
+                          className="flex-1"
+                        />
+                        <Input
+                          value={a.value}
+                          onChange={(e) => updateAttr(i, "value", e.target.value)}
+                          placeholder="Orange"
+                          className="flex-1"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Remove attribute"
+                          onClick={() => removeAttr(i)}
+                          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">
