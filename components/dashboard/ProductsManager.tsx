@@ -290,7 +290,7 @@ export default function ProductsManager({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="price">Rate / Price (₹)</Label>
                   <Input
@@ -302,19 +302,6 @@ export default function ProductsManager({
                     required
                     defaultValue={editing?.price ?? ""}
                     placeholder="1299"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="commission_pct">Commission %</Label>
-                  <Input
-                    id="commission_pct"
-                    name="commission_pct"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    defaultValue={editing?.commission_pct ?? 15}
-                    placeholder="15"
                   />
                 </div>
                 <div className="space-y-1.5">
