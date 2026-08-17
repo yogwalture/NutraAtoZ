@@ -66,7 +66,7 @@ export default async function AdminOverviewPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <a
           href="/admin/vendors"
           className="group rounded-2xl border border-white/60 bg-white/60 p-5 shadow-float backdrop-blur transition-transform hover:-translate-y-1"
@@ -77,7 +77,7 @@ export default async function AdminOverviewPage() {
             </span>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Review vendor applications
+                Manage vendors
               </p>
               <p className="text-xs text-muted-foreground">
                 {stats.pendingVendors} pending approval
@@ -86,20 +86,37 @@ export default async function AdminOverviewPage() {
           </div>
         </a>
         <a
-          href="/admin/orders"
+          href="/admin/products"
           className="group rounded-2xl border border-white/60 bg-white/60 p-5 shadow-float backdrop-blur transition-transform hover:-translate-y-1"
         >
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-              <ShoppingCart className="h-5 w-5" />
+              <Package className="h-5 w-5" />
             </span>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Orders &amp; settlements
+                Manage products
               </p>
               <p className="text-xs text-muted-foreground">
-                {formatINR(stats.commission)} commission across{" "}
-                {formatNumber(stats.orders)} orders
+                {formatNumber(stats.products)} listed
+              </p>
+            </div>
+          </div>
+        </a>
+        <a
+          href="/admin/commissions"
+          className="group rounded-2xl border border-white/60 bg-white/60 p-5 shadow-float backdrop-blur transition-transform hover:-translate-y-1"
+        >
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/15 text-accent">
+              <CircleDollarSign className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Commission portal
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatINR(stats.commission)} earned
               </p>
             </div>
           </div>

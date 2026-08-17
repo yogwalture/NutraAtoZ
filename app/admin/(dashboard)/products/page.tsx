@@ -1,6 +1,5 @@
 import { getAllProducts, getAllVendors } from "@/lib/adminData";
-import ProductsModeration from "@/components/admin/ProductsModeration";
-import AddProduct from "@/components/admin/AddProduct";
+import AdminProducts from "@/components/admin/AdminProducts";
 
 export default async function AdminProductsPage() {
   const [products, vendors] = await Promise.all([
@@ -15,19 +14,16 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-2xl font-semibold text-primary">
-            Products moderation
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {products.length} product{products.length === 1 ? "" : "s"} across all
-            vendors. Add products or hide anything non-compliant.
-          </p>
-        </div>
-        <AddProduct vendors={vendorOptions} />
+      <div>
+        <h1 className="font-serif text-2xl font-semibold text-primary">
+          Products
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {products.length} product{products.length === 1 ? "" : "s"} across all
+          vendors. Add, edit, hide, or delete any listing.
+        </p>
       </div>
-      <ProductsModeration products={products} />
+      <AdminProducts products={products} vendors={vendorOptions} />
     </div>
   );
 }

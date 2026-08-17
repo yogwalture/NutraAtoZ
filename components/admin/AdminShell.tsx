@@ -7,7 +7,8 @@ import {
   Store,
   Package,
   ReceiptText,
-  Leaf,
+  Percent,
+  Citrus,
   Menu,
   X,
   LogOut,
@@ -20,6 +21,7 @@ const NAV = [
   { label: "Vendors", href: "/admin/vendors", icon: Store },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Orders", href: "/admin/orders", icon: ReceiptText },
+  { label: "Commissions", href: "/admin/commissions", icon: Percent },
 ];
 
 export default function AdminShell({
@@ -70,8 +72,8 @@ export default function AdminShell({
 
   const Brand = (
     <div className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow-emerald">
-        <Leaf className="h-5 w-5" strokeWidth={2.25} />
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-citrus-gradient text-white shadow-glow-coral">
+        <Citrus className="h-5 w-5" strokeWidth={2.25} />
       </span>
       <div className="leading-tight">
         <p className="font-serif text-base font-semibold text-primary">
