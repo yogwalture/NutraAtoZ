@@ -24,7 +24,7 @@ export default function ReturnsPage() {
       <h2>Damaged or wrong items</h2>
       <p>
         Received something damaged or not as described? Email{" "}
-        <a href="mailto:support@nutraatoz.com">support@nutraatoz.com</a> within 48
+        <a href="mailto:nutraatoz@gmail.com">nutraatoz@gmail.com</a> within 48
         hours of delivery with your order number and a photo, and we&apos;ll
         arrange a replacement or refund.
       </p>

@@ -40,7 +40,7 @@ export default function LabReportsPage() {
       <h2>How to get a report</h2>
       <p>
         Want the CoA for a specific product or batch? Email{" "}
-        <a href="mailto:support@nutraatoz.com">support@nutraatoz.com</a> with the
+        <a href="mailto:nutraatoz@gmail.com">nutraatoz@gmail.com</a> with the
         product name and batch number and we&apos;ll share the report.
       </p>
     </PageShell>

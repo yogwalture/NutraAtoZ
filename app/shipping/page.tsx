@@ -32,7 +32,7 @@ export default function ShippingPage() {
       <p>
         We currently ship across India. If checkout doesn&apos;t accept your
         pincode, email{" "}
-        <a href="mailto:support@nutraatoz.com">support@nutraatoz.com</a> and
+        <a href="mailto:nutraatoz@gmail.com">nutraatoz@gmail.com</a> and
         we&apos;ll help.
       </p>
     </PageShell>

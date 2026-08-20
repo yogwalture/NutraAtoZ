@@ -12,7 +12,7 @@ export default function ContactPage() {
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <ContactCard icon={<Mail className="h-5 w-5" />} label="Customer support">
-          <a href="mailto:support@nutraatoz.com">support@nutraatoz.com</a>
+          <a href="mailto:nutraatoz@gmail.com">nutraatoz@gmail.com</a>
         </ContactCard>
         <ContactCard icon={<Phone className="h-5 w-5" />} label="Phone">
           +91 90000 00000 · Mon–Sat, 10am–6pm IST
@@ -29,7 +29,7 @@ export default function ContactPage() {
       <p>
         For anything related to an existing order — delivery, returns, or a
         Certificate of Analysis — email{" "}
-        <a href="mailto:support@nutraatoz.com">support@nutraatoz.com</a> with your
+        <a href="mailto:nutraatoz@gmail.com">nutraatoz@gmail.com</a> with your
         order number and we&apos;ll get back to you within one business day.
       </p>
     </PageShell>

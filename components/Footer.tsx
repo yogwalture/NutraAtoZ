@@ -1,5 +1,18 @@
 import Logo from "./Logo";
-import { ShieldCheck, Instagram, Twitter, Facebook } from "lucide-react";
+import { ShieldCheck, Instagram, Facebook } from "lucide-react";
+
+const SOCIALS = [
+  {
+    Icon: Instagram,
+    href: "https://www.instagram.com/nutraatoz/",
+    label: "Instagram",
+  },
+  {
+    Icon: Facebook,
+    href: "https://www.facebook.com/nutraatoz",
+    label: "Facebook",
+  },
+];
 
 const FOOTER_LINKS: Record<string, string> = {
   Categories: "/#categories",
@@ -29,11 +42,13 @@ export default function Footer() {
               FSSAI-verified, every batch independently tested.
             </p>
             <div className="mt-5 flex items-center gap-2">
-              {[Instagram, Twitter, Facebook].map((Icon, i) => (
+              {SOCIALS.map(({ Icon, href, label }) => (
                 <a
-                  key={i}
-                  href="#"
-                  aria-label="social"
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="grid h-10 w-10 place-items-center rounded-xl border border-coral/20 bg-white text-coral-600 shadow-card transition-all hover:-translate-y-0.5 hover:bg-citrus-gradient hover:text-white"
                 >
                   <Icon className="h-4 w-4" />

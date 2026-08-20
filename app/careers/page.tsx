@@ -25,7 +25,7 @@ export default function CareersPage() {
       <h2>Get in touch</h2>
       <p>
         Send your résumé and a short note to{" "}
-        <a href="mailto:careers@nutraatoz.com">careers@nutraatoz.com</a> and tell
+        <a href="mailto:nutraatoz@gmail.com">nutraatoz@gmail.com</a> and tell
         us what you&apos;d like to work on. We read every application.
       </p>
     </PageShell>
