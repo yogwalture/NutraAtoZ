@@ -51,12 +51,13 @@ export default function SiteNav() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button
+            <a
+              href="/search"
               aria-label="Search"
               className="grid h-11 w-11 place-items-center rounded-full text-ink/70 transition-colors hover:bg-coral/10 hover:text-coral-600"
             >
               <Search className="h-5 w-5" />
-            </button>
+            </a>
             <a
               href="/cart"
               aria-label="Cart"
@@ -76,9 +77,12 @@ export default function SiteNav() {
               <Store className="h-4 w-4" />
               Become a Vendor
             </a>
-            <button className="shine ml-1 rounded-full bg-citrus-gradient px-6 py-2.5 text-sm font-bold text-white shadow-glow-coral transition-all hover:-translate-y-0.5">
+            <a
+              href="/login"
+              className="shine ml-1 inline-flex items-center rounded-full bg-citrus-gradient px-6 py-2.5 text-sm font-bold text-white shadow-glow-coral transition-all hover:-translate-y-0.5"
+            >
               Sign In
-            </button>
+            </a>
           </div>
         </div>
       </header>
@@ -97,12 +101,13 @@ export default function SiteNav() {
           <Logo />
 
           <div className="flex items-center gap-1">
-            <button
+            <a
+              href="/search"
               aria-label="Search"
               className="grid h-11 w-11 place-items-center rounded-xl text-ink/70 transition-colors hover:bg-coral/10 hover:text-coral-600"
             >
               <Search className="h-5 w-5" />
-            </button>
+            </a>
             <a
               href="/cart"
               aria-label="Cart"
@@ -183,9 +188,13 @@ export default function SiteNav() {
             <Store className="h-4 w-4" />
             Become a Vendor
           </a>
-          <button className="w-full rounded-xl bg-citrus-gradient py-3.5 text-sm font-bold text-white shadow-card transition-transform hover:-translate-y-0.5">
+          <a
+            href="/login"
+            onClick={() => setDrawerOpen(false)}
+            className="block w-full rounded-xl bg-citrus-gradient py-3.5 text-center text-sm font-bold text-white shadow-card transition-transform hover:-translate-y-0.5"
+          >
             Sign In
-          </button>
+          </a>
         </div>
       </aside>
 

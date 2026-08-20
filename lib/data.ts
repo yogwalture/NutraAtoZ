@@ -19,7 +19,7 @@ export const navLinks: NavLink[] = [
   { label: "Categories", href: "/#categories", icon: LayoutGrid },
   { label: "Lab-Tested", href: "/products", icon: FlaskConical },
   { label: "Cart", href: "/cart", icon: ShoppingBag },
-  { label: "Account", href: "/vendor/dashboard", icon: User },
+  { label: "Account", href: "/account", icon: User },
 ];
 
 /** Placeholder data for the "Curated Wellness Categories" section. */

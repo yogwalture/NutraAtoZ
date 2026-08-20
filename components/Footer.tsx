@@ -1,6 +1,21 @@
 import Logo from "./Logo";
 import { ShieldCheck, Instagram, Twitter, Facebook } from "lucide-react";
 
+const FOOTER_LINKS: Record<string, string> = {
+  Categories: "/#categories",
+  "Lab-Tested": "/products",
+  "New Arrivals": "/products",
+  Bestsellers: "/products",
+  About: "/about",
+  Vendors: "/vendor/onboarding",
+  Careers: "/careers",
+  Contact: "/contact",
+  FAQ: "/faq",
+  Shipping: "/shipping",
+  Returns: "/returns",
+  "Lab Reports": "/lab-reports",
+};
+
 export default function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-white/60 bg-citrus-soft">
@@ -41,15 +56,7 @@ export default function Footer() {
                   {(links as string[]).map((l) => (
                     <li key={l}>
                       <a
-                        href={
-                          l === "Vendors"
-                            ? "/vendor/onboarding"
-                            : l === "Lab-Tested" || l === "Bestsellers" || l === "New Arrivals"
-                              ? "/products"
-                              : l === "Categories"
-                                ? "/#categories"
-                                : "#"
-                        }
+                        href={FOOTER_LINKS[l] ?? "#"}
                         className="text-sm text-mist transition-colors hover:text-coral-600"
                       >
                         {l}
