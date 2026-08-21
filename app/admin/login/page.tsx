@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Leaf, ShieldCheck, Loader2, AlertCircle, LogIn } from "lucide-react";
+import { ShieldCheck, Loader2, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,9 +41,11 @@ export default function AdminLoginPage() {
 
       <div className="relative z-10 w-full max-w-sm animate-fade-up rounded-[2rem] border border-white/60 bg-white/70 p-8 shadow-float backdrop-blur-xl">
         <div className="flex flex-col items-center text-center">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-glow-emerald">
-            <Leaf className="h-6 w-6" strokeWidth={2.25} />
-          </span>
+          <img
+            src="/nutraatoz-wordmark.png"
+            alt="Nutraatoz"
+            className="h-9 w-auto"
+          />
           <h1 className="mt-4 font-serif text-2xl font-semibold text-primary">
             Admin Console
           </h1>

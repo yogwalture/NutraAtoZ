@@ -8,7 +8,6 @@ import {
   Package,
   ReceiptText,
   Percent,
-  Citrus,
   Menu,
   X,
   LogOut,
@@ -71,19 +70,12 @@ export default function AdminShell({
   );
 
   const Brand = (
-    <div className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-citrus-gradient text-white shadow-glow-coral">
-        <Citrus className="h-5 w-5" strokeWidth={2.25} />
+    <a href="/" className="flex flex-col gap-1" aria-label="Nutraatoz home">
+      <img src="/nutraatoz-wordmark.png" alt="Nutraatoz" className="h-7 w-auto" />
+      <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        Admin Console
       </span>
-      <div className="leading-tight">
-        <p className="font-serif text-base font-semibold text-primary">
-          Nutra<span className="text-accent">atoz</span>
-        </p>
-        <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          Admin Console
-        </p>
-      </div>
-    </div>
+    </a>
   );
 
   return (

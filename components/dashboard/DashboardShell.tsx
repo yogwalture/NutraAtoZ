@@ -7,7 +7,6 @@ import {
   Package,
   ReceiptText,
   Wallet,
-  Leaf,
   Menu,
   X,
   ExternalLink,
@@ -71,18 +70,13 @@ export default function DashboardShell({
     <div className="min-h-screen bg-gradient-to-br from-cream via-[hsl(28_100%_96%)] to-[hsl(340_65%_96%)]">
       {/* ---------- Desktop sidebar ---------- */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/40 bg-white/60 shadow-float backdrop-blur-xl lg:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-            <Leaf className="h-5 w-5" strokeWidth={2.25} />
-          </span>
-          <div className="leading-tight">
-            <p className="font-serif text-base font-semibold text-primary">
-              Nutra<span className="text-accent">atoz</span>
-            </p>
-            <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        <div className="flex h-16 items-center border-b border-border px-5">
+          <a href="/" className="flex flex-col gap-1" aria-label="Nutraatoz home">
+            <img src="/nutraatoz-wordmark.png" alt="Nutraatoz" className="h-7 w-auto" />
+            <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               Vendor Portal
-            </p>
-          </div>
+            </span>
+          </a>
         </div>
         <div className="flex-1 overflow-y-auto p-3">{NavList}</div>
         <div className="border-t border-border p-3">
@@ -109,14 +103,7 @@ export default function DashboardShell({
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b border-border px-5">
-          <span className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <Leaf className="h-5 w-5" />
-            </span>
-            <span className="font-serif font-semibold text-primary">
-              Nutra<span className="text-accent">atoz</span>
-            </span>
-          </span>
+          <img src="/nutraatoz-wordmark.png" alt="Nutraatoz" className="h-7 w-auto" />
           <button
             aria-label="Close menu"
             onClick={() => setOpen(false)}

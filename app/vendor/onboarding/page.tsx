@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Leaf, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import VendorOnboardingForm from "@/components/onboarding/VendorOnboardingForm";
 
 export const metadata: Metadata = {
@@ -16,13 +16,12 @@ export default function VendorOnboardingPage() {
       <div className="absolute inset-0 bg-grain" />
       <header className="relative z-10 border-b border-white/40 bg-white/60 shadow-float backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
-          <a href="/" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-card">
-              <Leaf className="h-5 w-5" strokeWidth={2.25} />
-            </span>
-            <span className="font-serif text-lg font-semibold tracking-tight text-primary">
-              Nutra<span className="text-accent">atoz</span>
-            </span>
+          <a href="/" className="flex items-center">
+            <img
+              src="/nutraatoz-wordmark.png"
+              alt="Nutraatoz"
+              className="h-9 w-auto"
+            />
           </a>
           <span className="hidden items-center gap-1.5 text-xs font-medium text-muted-foreground sm:inline-flex">
             <ShieldCheck className="h-4 w-4 text-primary" />
