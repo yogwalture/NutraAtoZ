@@ -20,7 +20,8 @@ const FOOTER_LINKS: Record<string, string> = {
   "New Arrivals": "/products",
   Bestsellers: "/products",
   About: "/about",
-  Vendors: "/vendor/onboarding",
+  "Sell on Nutraatoz": "/vendor/onboarding",
+  "Vendor Login": "/vendor/login",
   Careers: "/careers",
   Contact: "/contact",
   FAQ: "/faq",
@@ -61,7 +62,7 @@ export default function Footer() {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             {[
               ["Shop", ["Categories", "Shop All", "New Arrivals", "Bestsellers"]],
-              ["Company", ["About", "Vendors", "Careers", "Contact"]],
+              ["Company", ["About", "Sell on Nutraatoz", "Vendor Login", "Careers", "Contact"]],
               ["Support", ["FAQ", "Shipping", "Returns", "Lab Reports"]],
             ].map(([title, links]) => (
               <div key={title as string}>

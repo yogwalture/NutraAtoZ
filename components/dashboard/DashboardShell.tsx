@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
@@ -12,8 +12,10 @@ import {
   ExternalLink,
   ShieldCheck,
   ShieldAlert,
+  LogOut,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { createSupabaseBrowserClient } from "@/lib/supabaseBrowserClient";
 
 const NAV = [
   { label: "Overview", href: "/vendor/dashboard", icon: LayoutDashboard },
@@ -34,11 +36,19 @@ export default function DashboardShell({
   children,
 }: ShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  async function signOut() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    router.push("/vendor/login");
+    router.refresh();
+  }
 
   const NavList = (
     <nav className="space-y-1">
@@ -79,7 +89,7 @@ export default function DashboardShell({
           </a>
         </div>
         <div className="flex-1 overflow-y-auto p-3">{NavList}</div>
-        <div className="border-t border-border p-3">
+        <div className="space-y-1 border-t border-border p-3">
           <a
             href="/"
             className="flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-primary/5 hover:text-primary"
@@ -87,6 +97,13 @@ export default function DashboardShell({
             <ExternalLink className="h-4 w-4" />
             View storefront
           </a>
+          <button
+            onClick={signOut}
+            className="flex w-full items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
         </div>
       </aside>
 

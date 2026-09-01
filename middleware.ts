@@ -39,11 +39,22 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isLogin = pathname.startsWith("/admin/login");
 
-  if (pathname.startsWith("/admin") && !isLogin && !user) {
+  // Admin area
+  if (
+    pathname.startsWith("/admin") &&
+    !pathname.startsWith("/admin/login") &&
+    !user
+  ) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin/login";
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // Vendor dashboard area
+  if (pathname.startsWith("/vendor/dashboard") && !user) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/vendor/login";
     return NextResponse.redirect(redirectUrl);
   }
 
@@ -51,5 +62,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/vendor/dashboard/:path*"],
 };

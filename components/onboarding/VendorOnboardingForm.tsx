@@ -192,6 +192,20 @@ export default function VendorOnboardingForm() {
           GSTIN, FSSAI license and bank details, and email you once your store
           is approved.
         </p>
+        <div className="mt-6 rounded-2xl border border-border bg-secondary/40 p-4 text-sm">
+          <p className="font-semibold text-foreground">Next step: create your vendor login</p>
+          <p className="mt-1 text-muted-foreground">
+            Set up a login with the <strong>same email</strong> you used above.
+            Your application links to it automatically, so you can track approval
+            and manage your store.
+          </p>
+          <a
+            href="/vendor/login"
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-card transition-transform hover:-translate-y-0.5"
+          >
+            Create vendor login
+          </a>
+        </div>
       </div>
     );
   }

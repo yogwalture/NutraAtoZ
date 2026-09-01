@@ -7,8 +7,8 @@ export const metadata: Metadata = { title: "Lab Reports — Nutraatoz" };
 export default function LabReportsPage() {
   return (
     <PageShell
-      title="Lab reports & testing"
-      tagline="Independent, third-party testing on every product we list."
+      title="Lab reports & documentation"
+      tagline="Transparent product documentation from FSSAI-verified vendors — with a clear label for what has been verified."
     >
       <div className="flex flex-wrap gap-3">
         <span className="inline-flex items-center gap-2 rounded-full bg-coral/10 px-3.5 py-1.5 text-sm font-semibold text-coral-600">
@@ -17,7 +17,7 @@ export default function LabReportsPage() {
         </span>
         <span className="inline-flex items-center gap-2 rounded-full bg-berry/10 px-3.5 py-1.5 text-sm font-semibold text-berry">
           <ShieldCheck className="h-4 w-4" />
-          Certificate of Analysis
+          FSSAI-verified vendors
         </span>
       </div>
 
@@ -31,10 +31,11 @@ export default function LabReportsPage() {
 
       <h2>Our standard</h2>
       <p>
-        Every product on Nutraatoz is required to have a valid CoA, and every
-        vendor holds an active <strong>FSSAI licence</strong>. We re-check
-        licences and expiry dates so lapsed vendors are automatically removed
-        from the storefront.
+        Vendors are required to provide accurate product documentation, and a
+        Certificate of Analysis is available on request for eligible products.
+        Every vendor holds an active <strong>FSSAI licence</strong>, and we
+        re-check licences and expiry dates so lapsed vendors are removed from the
+        storefront.
       </p>
 
       <h2>How to get a report</h2>

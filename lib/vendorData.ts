@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { supabaseAdmin, isSupabaseAdminConfigured } from "./supabaseAdmin";
+import { createSupabaseServerClient } from "./supabaseServerClient";
 
 /* ------------------------------------------------------------------ *
  * Types
@@ -20,6 +20,8 @@ export interface VendorRow {
 
 export interface VendorContext {
   configured: boolean;
+  /** whether a user is signed in */
+  authed: boolean;
   vendor: VendorRow | null;
   vendorId: string | null;
 }
@@ -68,29 +70,62 @@ export interface VendorOrderItem {
 }
 
 /* ------------------------------------------------------------------ *
- * Vendor resolution (replace with Supabase Auth auth.uid() later)
+ * Vendor resolution — the vendor is the vendors row linked to the
+ * signed-in Supabase auth user (vendors.user_id). If the user has an
+ * unclaimed application matching their email, it is auto-linked ("claimed")
+ * on first sign-in.
  * ------------------------------------------------------------------ */
+
+const VENDOR_SELECT =
+  "id, company_name, store_name, contact_email, gstin, fssai_license_no, fssai_expiry, fssai_certificate_url, razorpay_linked_id, is_approved";
 
 export async function getVendorContext(): Promise<VendorContext> {
   if (!isSupabaseAdminConfigured) {
-    return { configured: false, vendor: null, vendorId: null };
+    return { configured: false, authed: false, vendor: null, vendorId: null };
   }
 
-  const cookieVendor = cookies().get("vendor_id")?.value;
-  const vendorId = cookieVendor || process.env.DEMO_VENDOR_ID || null;
-  if (!vendorId) {
-    return { configured: true, vendor: null, vendorId: null };
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { configured: true, authed: false, vendor: null, vendorId: null };
   }
 
-  const { data } = await supabaseAdmin
+  // 1) vendor already linked to this account
+  let { data } = await supabaseAdmin
     .from("vendors")
-    .select(
-      "id, company_name, store_name, contact_email, gstin, fssai_license_no, fssai_expiry, fssai_certificate_url, razorpay_linked_id, is_approved"
-    )
-    .eq("id", vendorId)
+    .select(VENDOR_SELECT)
+    .eq("user_id", user.id)
     .maybeSingle();
 
-  return { configured: true, vendor: (data as VendorRow) ?? null, vendorId };
+  // 2) otherwise claim an unclaimed application with the same contact email
+  if (!data && user.email) {
+    const { data: byEmail } = await supabaseAdmin
+      .from("vendors")
+      .select(VENDOR_SELECT)
+      .ilike("contact_email", user.email)
+      .is("user_id", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (byEmail) {
+      await supabaseAdmin
+        .from("vendors")
+        .update({ user_id: user.id })
+        .eq("id", byEmail.id);
+      data = byEmail;
+    }
+  }
+
+  return {
+    configured: true,
+    authed: true,
+    vendor: (data as VendorRow) ?? null,
+    vendorId: (data as VendorRow)?.id ?? null,
+  };
 }
 
 /* ------------------------------------------------------------------ *
