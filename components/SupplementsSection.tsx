@@ -54,8 +54,9 @@ export default function SupplementsSection({
             ? products.slice(0, 8).map((product, i) => (
                 <RevealOnScroll key={product.id} delay={(i % 4) * 80}>
                   <article className="tilt group flex h-full flex-col overflow-hidden rounded-3xl border border-white/70 bg-white shadow-card">
-                    <div
-                      className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${PANELS[i % PANELS.length]}`}
+                    <a
+                      href={`/product/${product.id}`}
+                      className={`relative block aspect-[4/3] overflow-hidden bg-gradient-to-br ${PANELS[i % PANELS.length]}`}
                     >
                       <div className="absolute inset-0 grid place-items-center transition-transform duration-500 group-hover:scale-110">
                         <FlaskConical className="h-16 w-16" strokeWidth={1.1} />
@@ -69,15 +70,18 @@ export default function SupplementsSection({
                           {product.discount}
                         </span>
                       )}
-                    </div>
+                    </a>
 
                     <div className="flex flex-1 flex-col p-4">
                       <p className="text-[11px] font-bold uppercase tracking-wide text-berry">
                         {product.brand}
                       </p>
-                      <h3 className="mt-1 text-sm font-bold leading-snug text-ink">
+                      <a
+                        href={`/product/${product.id}`}
+                        className="mt-1 text-sm font-bold leading-snug text-ink transition-colors hover:text-coral-700"
+                      >
                         {product.title}
-                      </h3>
+                      </a>
                       {product.attributes && product.attributes.length > 0 ? (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {product.attributes.slice(0, 3).map((a) => (

@@ -209,6 +209,10 @@ export interface AdminProduct {
   description: string | null;
   ingredients: string | null;
   lab_tested_url: string | null;
+  coa_status: string | null;
+  coa_lab: string | null;
+  coa_batch: string | null;
+  coa_date: string | null;
   discount_type: DiscountType;
   discount_value: number | null;
   attributes: ProductAttribute[];
@@ -221,7 +225,7 @@ export async function getAllProducts(): Promise<AdminProduct[]> {
   const { data: products } = await supabaseAdmin
     .from("products")
     .select(
-      "id, title, price, commission_pct, stock, weight_gms, description, ingredients, lab_tested_url, discount_type, discount_value, attributes, is_active, vendor_id, created_at"
+      "id, title, price, commission_pct, stock, weight_gms, description, ingredients, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, discount_type, discount_value, attributes, is_active, vendor_id, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -246,6 +250,10 @@ export async function getAllProducts(): Promise<AdminProduct[]> {
     description: p.description,
     ingredients: p.ingredients,
     lab_tested_url: p.lab_tested_url,
+    coa_status: p.coa_status ?? null,
+    coa_lab: p.coa_lab ?? null,
+    coa_batch: p.coa_batch ?? null,
+    coa_date: p.coa_date ?? null,
     discount_type:
       p.discount_type === "PCT" || p.discount_type === "FLAT"
         ? p.discount_type

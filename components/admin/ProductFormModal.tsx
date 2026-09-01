@@ -186,9 +186,45 @@ export default function ProductFormModal({
             <Textarea id="ingredients" name="ingredients" defaultValue={product?.ingredients ?? ""} placeholder="EPA 660mg, DHA 440mg…" />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="lab_tested_url">Lab report URL</Label>
-            <Input id="lab_tested_url" name="lab_tested_url" type="url" defaultValue={product?.lab_tested_url ?? ""} placeholder="https://…/certificate-of-analysis.pdf" />
+          <div className="rounded-xl border border-border bg-secondary/40 p-3.5">
+            <Label className="flex items-center gap-1.5">
+              <Package className="h-3.5 w-3.5 text-accent" />
+              Quality &amp; Certificate of Analysis
+            </Label>
+            <div className="mt-2 space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="coa_status" className="text-xs text-muted-foreground">CoA status</Label>
+                <select
+                  id="coa_status"
+                  name="coa_status"
+                  defaultValue={product?.coa_status ?? ""}
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">Available on request</option>
+                  <option value="VENDOR_PROVIDED">Vendor-provided CoA</option>
+                  <option value="NUTRAATOZ_REVIEWED">Reviewed by NutraAtoZ</option>
+                  <option value="INDEPENDENTLY_TESTED">Independently tested</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="lab_tested_url" className="text-xs text-muted-foreground">CoA / lab report URL</Label>
+                <Input id="lab_tested_url" name="lab_tested_url" type="url" defaultValue={product?.lab_tested_url ?? ""} placeholder="https://…/certificate-of-analysis.pdf" />
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="coa_lab" className="text-xs text-muted-foreground">Testing lab</Label>
+                  <Input id="coa_lab" name="coa_lab" defaultValue={product?.coa_lab ?? ""} placeholder="Eurofins" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="coa_batch" className="text-xs text-muted-foreground">Batch no.</Label>
+                  <Input id="coa_batch" name="coa_batch" defaultValue={product?.coa_batch ?? ""} placeholder="B-2409" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="coa_date" className="text-xs text-muted-foreground">Report date</Label>
+                  <Input id="coa_date" name="coa_date" type="date" defaultValue={product?.coa_date ?? ""} />
+                </div>
+              </div>
+            </div>
           </div>
 
           {error && (

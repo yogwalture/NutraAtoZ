@@ -64,12 +64,15 @@ export default async function SearchPage({
             </div>
           ) : results.length > 0 ? (
             <div className="perspective grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {results.map((product, i) => (
+              {results.map((product) => (
                 <article
                   key={product.id}
                   className="tilt group flex flex-col overflow-hidden rounded-3xl border border-white/70 bg-white shadow-card"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-coral-500/25 via-white to-berry-500/25 text-coral-600">
+                  <a
+                    href={`/product/${product.id}`}
+                    className="relative block aspect-[4/3] overflow-hidden bg-gradient-to-br from-coral-500/25 via-white to-berry-500/25 text-coral-600"
+                  >
                     <div className="absolute inset-0 grid place-items-center transition-transform duration-500 group-hover:scale-110">
                       <FlaskConical className="h-16 w-16" strokeWidth={1.1} />
                     </div>
@@ -82,14 +85,17 @@ export default async function SearchPage({
                         {product.discount}
                       </span>
                     )}
-                  </div>
+                  </a>
                   <div className="flex flex-1 flex-col p-4">
                     <p className="text-[11px] font-bold uppercase tracking-wide text-berry">
                       {product.brand}
                     </p>
-                    <h3 className="mt-1 text-sm font-bold leading-snug text-ink">
+                    <a
+                      href={`/product/${product.id}`}
+                      className="mt-1 text-sm font-bold leading-snug text-ink transition-colors hover:text-coral-700"
+                    >
                       {product.title}
-                    </h3>
+                    </a>
                     <div className="mt-auto flex items-center justify-between pt-4">
                       <span className="flex items-baseline gap-1.5">
                         <span className="font-serif text-lg font-semibold text-ink">

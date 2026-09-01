@@ -39,6 +39,10 @@ export interface ProductRow {
   weight_gms: number | null;
   ingredients: string | null;
   lab_tested_url: string | null;
+  coa_status: string | null;
+  coa_lab: string | null;
+  coa_batch: string | null;
+  coa_date: string | null;
   discount_type: DiscountType;
   discount_value: number | null;
   attributes: ProductAttribute[];
@@ -138,7 +142,7 @@ export async function getVendorProducts(
   const { data } = await supabaseAdmin
     .from("products")
     .select(
-      "id, vendor_id, title, description, price, commission_pct, stock, weight_gms, ingredients, lab_tested_url, discount_type, discount_value, attributes, is_active, created_at"
+      "id, vendor_id, title, description, price, commission_pct, stock, weight_gms, ingredients, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, discount_type, discount_value, attributes, is_active, created_at"
     )
     .eq("vendor_id", vendorId)
     .order("created_at", { ascending: false });

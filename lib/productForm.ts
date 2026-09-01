@@ -23,6 +23,17 @@ export function parseProduct(formData: FormData) {
   const lab_tested_url =
     String(formData.get("lab_tested_url") ?? "").trim() || null;
 
+  const rawCoa = String(formData.get("coa_status") ?? "").trim();
+  const coa_status =
+    rawCoa === "VENDOR_PROVIDED" ||
+    rawCoa === "NUTRAATOZ_REVIEWED" ||
+    rawCoa === "INDEPENDENTLY_TESTED"
+      ? rawCoa
+      : null;
+  const coa_lab = String(formData.get("coa_lab") ?? "").trim() || null;
+  const coa_batch = String(formData.get("coa_batch") ?? "").trim() || null;
+  const coa_date = String(formData.get("coa_date") ?? "").trim() || null;
+
   const rawType = String(formData.get("discount_type") ?? "").trim();
   const discount_type: DiscountType =
     rawType === "PCT" || rawType === "FLAT" ? rawType : null;
@@ -56,6 +67,10 @@ export function parseProduct(formData: FormData) {
       description,
       ingredients,
       lab_tested_url,
+      coa_status,
+      coa_lab,
+      coa_batch,
+      coa_date,
       discount_type: discount_value == null ? null : discount_type,
       discount_value,
       attributes,

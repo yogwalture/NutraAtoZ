@@ -22,6 +22,94 @@ export interface StoreProduct {
   attributes: ProductAttribute[];
 }
 
+export type CoaStatus =
+  | "VENDOR_PROVIDED"
+  | "NUTRAATOZ_REVIEWED"
+  | "INDEPENDENTLY_TESTED"
+  | null;
+
+export interface StoreProductDetail extends StoreProduct {
+  ingredients: string | null;
+  coaUrl: string | null;
+  coaStatus: CoaStatus;
+  coaLab: string | null;
+  coaBatch: string | null;
+  coaDate: string | null;
+  vendorId: string;
+  vendorApproved: boolean;
+}
+
+const DETAIL_SELECT =
+  "id, title, price, weight_gms, description, ingredients, stock, discount_type, discount_value, attributes, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, vendor_id, is_active";
+
+function coerceCoa(s: unknown): CoaStatus {
+  return s === "VENDOR_PROVIDED" ||
+    s === "NUTRAATOZ_REVIEWED" ||
+    s === "INDEPENDENTLY_TESTED"
+    ? s
+    : null;
+}
+
+/** Full detail for one active product (with brand + CoA). null if unavailable. */
+export async function getStoreProductById(
+  id: string
+): Promise<StoreProductDetail | null> {
+  if (!isSupabaseAdminConfigured) return null;
+
+  const { data: p } = await supabaseAdmin
+    .from("products")
+    .select(DETAIL_SELECT)
+    .eq("id", id)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (!p) return null;
+
+  const { data: vendor } = await supabaseAdmin
+    .from("vendors")
+    .select("id, store_name, company_name, is_approved")
+    .eq("id", p.vendor_id)
+    .maybeSingle();
+  if (!vendor || vendor.is_approved === false) return null;
+
+  const mrp = Number(p.price) || 0;
+  const discountType =
+    p.discount_type === "PCT" || p.discount_type === "FLAT"
+      ? p.discount_type
+      : null;
+  const price = effectivePrice(mrp, discountType, p.discount_value);
+
+  return {
+    id: p.id,
+    title: p.title,
+    brand: vendor.store_name || vendor.company_name || "Nutraatoz",
+    price,
+    mrp,
+    discount: discountLabel(discountType, p.discount_value),
+    weight_gms: p.weight_gms,
+    description: p.description,
+    stock: p.stock,
+    attributes: parseAttributes(p.attributes),
+    ingredients: p.ingredients ?? null,
+    coaUrl: p.lab_tested_url ?? null,
+    coaStatus: coerceCoa(p.coa_status),
+    coaLab: p.coa_lab ?? null,
+    coaBatch: p.coa_batch ?? null,
+    coaDate: p.coa_date ?? null,
+    vendorId: p.vendor_id,
+    vendorApproved: vendor.is_approved !== false,
+  };
+}
+
+/** Other active products from the same vendor (for the product page). */
+export async function getMoreFromVendor(
+  vendorId: string,
+  excludeId: string,
+  limit = 4
+): Promise<StoreProduct[]> {
+  const all = await getStoreProducts(60);
+  return all.filter((p) => p.id !== excludeId).slice(0, limit);
+}
+
 /**
  * Active products for the storefront (with the vendor's brand name).
  * Returns [] when Supabase isn't configured so the page still renders.
