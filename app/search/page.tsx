@@ -75,7 +75,7 @@ export default async function SearchPage({
                     </div>
                     <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-coral-600 shadow-float backdrop-blur">
                       <ShieldCheck className="h-3 w-3" />
-                      CoA
+                      Verified vendor
                     </span>
                     {product.discount && (
                       <span className="absolute left-3 top-3 rounded-full bg-citrus-gradient px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-glow-berry">
@@ -114,7 +114,7 @@ export default async function SearchPage({
             </div>
           ) : (
             <p className="text-center text-sm text-mist">
-              Start typing to search our lab-tested catalog.
+              Start typing to search our verified catalog.
             </p>
           )}
         </section>

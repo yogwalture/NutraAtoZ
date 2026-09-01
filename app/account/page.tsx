@@ -30,7 +30,7 @@ export default async function AccountPage() {
     "there";
 
   const links = [
-    { href: "/products", icon: FlaskConical, title: "Shop supplements", sub: "Browse the lab-tested catalog" },
+    { href: "/products", icon: FlaskConical, title: "Shop supplements", sub: "Browse the verified catalog" },
     { href: "/cart", icon: ShoppingBag, title: "My cart", sub: "Review items and check out" },
     { href: "/vendor/onboarding", icon: Store, title: "Sell on Nutraatoz", sub: "Register your brand as a vendor" },
   ];

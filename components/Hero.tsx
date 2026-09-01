@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { ShieldCheck, Sparkles, ArrowRight, Star } from "lucide-react";
+import { ShieldCheck, Sparkles, ArrowRight, Store, FileCheck, Truck } from "lucide-react";
 
 // WebGL object is client-only.
 const Hero3D = dynamic(() => import("./Hero3D"), {
@@ -29,20 +29,21 @@ export default function Hero() {
           <div className="max-w-xl animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-4 py-1.5 text-xs font-semibold text-coral-700 shadow-float backdrop-blur">
               <Sparkles className="h-4 w-4 text-berry" />
-              FSSAI-verified vendors · Third-party lab reports
+              FSSAI-verified vendors · Certificate of Analysis on request
             </span>
 
             <h1 className="mt-6 font-serif text-[2.6rem] font-semibold leading-[1.02] tracking-tight text-ink sm:text-6xl lg:text-[4.4rem]">
-              Wellness that{" "}
-              <span className="text-gradient">tastes</span> like
-              <br className="hidden sm:block" /> living{" "}
-              <span className="text-gradient-warm">brighter</span>.
+              Find better{" "}
+              <span className="text-gradient">nutraceuticals</span>
+              <br className="hidden sm:block" /> with{" "}
+              <span className="text-gradient-warm">confidence</span>.
             </h1>
 
             <p className="mt-5 max-w-lg text-base leading-relaxed text-mist sm:text-lg">
-              A bold, curated marketplace of premium nutraceuticals — every
-              supplement lab-tested, every vendor verified. Fuel your goals with
-              the cleanest, most vibrant wellness in India.
+              Discover nutraceutical products from verified brands and vendors
+              across India. Explore by your wellness goals, nutritional
+              interests and preferences — with transparent product information
+              and documentation.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -50,38 +51,43 @@ export default function Hero() {
                 href="/products"
                 className="shine inline-flex items-center gap-2 rounded-full bg-citrus-gradient px-8 py-4 text-sm font-bold text-white shadow-glow-coral transition-all hover:-translate-y-0.5 hover:shadow-glow-berry"
               >
-                Shop Supplements
+                Explore Products
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="/#categories"
                 className="inline-flex items-center gap-2 rounded-full border border-coral/25 bg-white/70 px-8 py-4 text-sm font-bold text-coral-700 shadow-float backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white"
               >
-                Explore Categories
+                Find Products by Goal
+              </a>
+              <a
+                href="/vendor/onboarding"
+                className="inline-flex items-center gap-2 rounded-full border border-berry/30 bg-berry/5 px-6 py-4 text-sm font-bold text-berry transition-all hover:-translate-y-0.5 hover:bg-berry/10"
+              >
+                <Store className="h-4 w-4" />
+                Sell on NutraAtoZ
               </a>
             </div>
 
             <dl className="mt-10 grid max-w-md grid-cols-3 gap-3">
               {[
-                ["180+", "Lab-Tested SKUs"],
-                ["40+", "Verified Vendors"],
-                ["4.9", "Avg. Rating", true],
-              ].map(([stat, label, star]) => (
-                <div
-                  key={label as string}
-                  className="glass rounded-2xl px-3 py-3.5 text-center"
-                >
-                  <dt className="flex items-center justify-center gap-1 font-serif text-2xl font-semibold text-ink">
-                    {stat}
-                    {star ? (
-                      <Star className="h-4 w-4 fill-amber text-amber" />
-                    ) : null}
-                  </dt>
-                  <dd className="mt-0.5 text-[11px] font-medium text-mist">
-                    {label}
-                  </dd>
-                </div>
-              ))}
+                [ShieldCheck, "FSSAI-verified vendors"],
+                [FileCheck, "CoA on request"],
+                [Truck, "Secure Cash on Delivery"],
+              ].map(([Icon, label]) => {
+                const I = Icon as typeof ShieldCheck;
+                return (
+                  <div
+                    key={label as string}
+                    className="glass flex flex-col items-center gap-1.5 rounded-2xl px-3 py-3.5 text-center"
+                  >
+                    <I className="h-5 w-5 text-coral-600" />
+                    <dd className="text-[11px] font-medium leading-tight text-mist">
+                      {label as string}
+                    </dd>
+                  </div>
+                );
+              })}
             </dl>
           </div>
 
@@ -95,7 +101,7 @@ export default function Hero() {
                 </div>
                 <span className="pointer-events-none absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold text-coral-700 shadow-float backdrop-blur">
                   <Sparkles className="h-3.5 w-3.5 text-berry" />
-                  Lab-tested purity
+                  Verified vendors
                 </span>
               </div>
             </div>

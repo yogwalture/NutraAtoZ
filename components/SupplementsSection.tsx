@@ -1,4 +1,4 @@
-import { FlaskConical, ShieldCheck, Star, ArrowRight } from "lucide-react";
+import { FlaskConical, ShieldCheck, ArrowRight } from "lucide-react";
 import type { StoreProduct } from "@/lib/publicData";
 import { products as placeholderProducts } from "@/lib/data";
 import AddToCartButton from "@/components/cart/AddToCartButton";
@@ -32,12 +32,12 @@ export default function SupplementsSection({
               Verified Quality
             </span>
             <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
-              Lab-Tested{" "}
-              <span className="text-gradient">Premium</span> Supplements
+              <span className="text-gradient">Premium</span> Supplements,
+              Verified Vendors
             </h2>
             <p className="mt-3 max-w-lg text-sm text-mist sm:text-base">
-              Each product ships with a third-party Certificate of Analysis. No
-              proprietary blends, no guesswork.
+              From FSSAI-verified vendors, with transparent ingredient
+              information and a Certificate of Analysis available on request.
             </p>
           </div>
           <a
@@ -62,7 +62,7 @@ export default function SupplementsSection({
                       </div>
                       <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-coral-600 shadow-float backdrop-blur">
                         <ShieldCheck className="h-3 w-3" />
-                        CoA
+                        Verified vendor
                       </span>
                       {product.discount && (
                         <span className="absolute left-3 top-3 rounded-full bg-citrus-gradient px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-glow-berry">
@@ -139,9 +139,8 @@ export default function SupplementsSection({
                       <h3 className="mt-1 text-sm font-bold leading-snug text-ink">
                         {product.name}
                       </h3>
-                      <div className="mt-2 flex items-center gap-1 text-xs text-mist">
-                        <Star className="h-3.5 w-3.5 fill-amber text-amber" />
-                        {product.rating} · {product.servings} servings
+                      <div className="mt-2 text-xs text-mist">
+                        {product.servings} servings
                       </div>
                       <div className="mt-auto pt-4">
                         <span className="font-serif text-lg font-semibold text-ink">

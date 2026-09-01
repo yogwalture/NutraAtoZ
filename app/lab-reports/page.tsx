@@ -13,7 +13,7 @@ export default function LabReportsPage() {
       <div className="flex flex-wrap gap-3">
         <span className="inline-flex items-center gap-2 rounded-full bg-coral/10 px-3.5 py-1.5 text-sm font-semibold text-coral-600">
           <FlaskConical className="h-4 w-4" />
-          Third-party lab tested
+          Certificate of Analysis
         </span>
         <span className="inline-flex items-center gap-2 rounded-full bg-berry/10 px-3.5 py-1.5 text-sm font-semibold text-berry">
           <ShieldCheck className="h-4 w-4" />

@@ -7,7 +7,7 @@ export default function AboutPage() {
   return (
     <PageShell
       title="About Nutraatoz"
-      tagline="A curated marketplace built on one promise: every supplement is lab-tested and every vendor is verified."
+      tagline="A curated marketplace built on one promise: every vendor is FSSAI-verified, with transparent product documentation."
     >
       <p>
         Nutraatoz is a premium, multi-vendor marketplace for nutraceuticals in

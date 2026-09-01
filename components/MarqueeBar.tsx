@@ -1,11 +1,11 @@
 import { FlaskConical, ShieldCheck, Truck, Leaf, BadgeCheck, HeartPulse } from "lucide-react";
 
 const ITEMS = [
-  { icon: FlaskConical, label: "Third-party lab tested" },
+  { icon: FlaskConical, label: "Certificate of Analysis on request" },
   { icon: ShieldCheck, label: "FSSAI-verified vendors" },
   { icon: Truck, label: "Fast pan-India delivery" },
   { icon: Leaf, label: "No proprietary blends" },
-  { icon: BadgeCheck, label: "Certificate of Analysis" },
+  { icon: BadgeCheck, label: "Documented ingredients" },
   { icon: HeartPulse, label: "Goal-based formulas" },
 ];
 

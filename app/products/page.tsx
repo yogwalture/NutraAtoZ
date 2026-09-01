@@ -28,7 +28,7 @@ export default async function ProductsPage() {
                 All products
               </span>
               <h1 className="mt-2 font-serif text-4xl font-semibold tracking-tight text-emerald">
-                Lab-Tested Supplements
+                Verified Supplements
               </h1>
               <p className="mt-2 text-sm text-mist sm:text-base">
                 Every product from FSSAI-verified vendors, with a Certificate of
@@ -55,7 +55,7 @@ export default async function ProductsPage() {
                       </div>
                       <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-coral-600 shadow-float backdrop-blur">
                         <ShieldCheck className="h-3 w-3" />
-                        CoA
+                        Verified vendor
                       </span>
                       {product.discount && (
                         <span className="absolute left-3 top-3 rounded-full bg-citrus-gradient px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-glow-berry">

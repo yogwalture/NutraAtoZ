@@ -3,9 +3,9 @@ import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
 
 export const metadata: Metadata = {
-  title: "Nutraatoz — Lab-Tested Premium Nutraceuticals",
+  title: "Nutraatoz — Verified Nutraceutical Marketplace",
   description:
-    "A curated marketplace of FSSAI-verified, lab-tested premium supplements and wellness essentials.",
+    "A curated marketplace of FSSAI-verified premium supplements and wellness essentials.",
 };
 
 export default function RootLayout({

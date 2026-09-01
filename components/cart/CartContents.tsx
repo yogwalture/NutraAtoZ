@@ -25,7 +25,7 @@ export default function CartContents() {
           Your cart is empty
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add some lab-tested supplements to get started.
+          Add some supplements to get started.
         </p>
         <a
           href="/products"

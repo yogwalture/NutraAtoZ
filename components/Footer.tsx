@@ -16,7 +16,7 @@ const SOCIALS = [
 
 const FOOTER_LINKS: Record<string, string> = {
   Categories: "/#categories",
-  "Lab-Tested": "/products",
+  "Shop All": "/products",
   "New Arrivals": "/products",
   Bestsellers: "/products",
   About: "/about",
@@ -38,8 +38,9 @@ export default function Footer() {
           <div className="max-w-xs">
             <Logo />
             <p className="mt-4 text-sm leading-relaxed text-mist">
-              A vibrant marketplace for lab-tested nutraceuticals. Every vendor
-              FSSAI-verified, every batch independently tested.
+              A specialized marketplace for nutraceuticals. Every vendor
+              FSSAI-verified, with product documentation and Certificate of
+              Analysis available on request.
             </p>
             <div className="mt-5 flex items-center gap-2">
               {SOCIALS.map(({ Icon, href, label }) => (
@@ -59,7 +60,7 @@ export default function Footer() {
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             {[
-              ["Shop", ["Categories", "Lab-Tested", "New Arrivals", "Bestsellers"]],
+              ["Shop", ["Categories", "Shop All", "New Arrivals", "Bestsellers"]],
               ["Company", ["About", "Vendors", "Careers", "Contact"]],
               ["Support", ["FAQ", "Shipping", "Returns", "Lab Reports"]],
             ].map(([title, links]) => (
@@ -84,11 +85,34 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-coral/10 pt-6 text-xs text-mist sm:flex-row sm:items-center">
+        {/* Legal + compliance */}
+        <div className="mt-10 flex flex-wrap gap-x-5 gap-y-2 border-t border-coral/10 pt-6 text-xs">
+          {[
+            ["Terms", "/terms"],
+            ["Privacy", "/privacy"],
+            ["Vendor Agreement", "/vendor-agreement"],
+            ["Vendor Terms (15%)", "/vendor-terms"],
+            ["Shipping", "/shipping"],
+            ["Returns", "/returns"],
+          ].map(([label, href]) => (
+            <a key={label} href={href} className="text-mist transition-colors hover:text-coral-600">
+              {label}
+            </a>
+          ))}
+        </div>
+
+        <p className="mt-5 rounded-xl bg-white/60 px-4 py-3 text-[11px] leading-relaxed text-mist">
+          <strong className="text-ink">Disclaimer:</strong> Products listed on Nutraatoz are
+          nutraceuticals / dietary supplements and are not intended to diagnose, treat, cure or
+          prevent any disease. Information shown is provided by verified vendors. Consult a qualified
+          healthcare professional before use.
+        </p>
+
+        <div className="mt-6 flex flex-col items-start justify-between gap-3 border-t border-coral/10 pt-6 text-xs text-mist sm:flex-row sm:items-center">
           <p>© {new Date().getFullYear()} Nutraatoz. All rights reserved.</p>
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="h-4 w-4 text-coral-600" />
-            FSSAI-compliant · Secure payments via Razorpay
+            Cash on Delivery available · Online payments coming soon
           </span>
         </div>
       </div>

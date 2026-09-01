@@ -75,8 +75,8 @@ export default function CategoriesSection() {
                     </h3>
                     <p className="mt-1 text-xs text-mist">{cat.tagline}</p>
                     <p className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-coral-600">
-                      {cat.count} products
-                      <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                      Explore
+                      <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                     </p>
                   </div>
                 </a>

@@ -5,8 +5,8 @@ export const metadata: Metadata = { title: "FAQ — Nutraatoz" };
 
 const FAQS: { q: string; a: React.ReactNode }[] = [
   {
-    q: "Are the products on Nutraatoz genuine and lab-tested?",
-    a: "Yes. Every brand is FSSAI-verified and each product is backed by a third-party Certificate of Analysis (CoA) available on request.",
+    q: "Are the products on Nutraatoz genuine and verified?",
+    a: "Every vendor on Nutraatoz is FSSAI-verified during onboarding. A Certificate of Analysis (CoA) is available on request for eligible products. Nutraatoz clearly distinguishes vendor-provided documentation from any documentation it has independently reviewed.",
   },
   {
     q: "How do I place an order?",

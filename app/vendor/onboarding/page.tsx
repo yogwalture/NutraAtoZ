@@ -36,7 +36,7 @@ export default function VendorOnboardingPage() {
             Sell on Nutraatoz
           </h1>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Join our curated marketplace of lab-tested nutraceuticals. Complete
+            Join our curated marketplace of verified nutraceuticals. Complete
             the five quick steps below — it takes about five minutes.
           </p>
         </div>

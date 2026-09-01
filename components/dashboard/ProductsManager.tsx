@@ -140,7 +140,7 @@ export default function ProductsManager({
             </span>
             <p className="text-sm font-medium text-foreground">No products yet</p>
             <p className="max-w-xs text-xs text-muted-foreground">
-              Add your first lab-tested supplement to start selling on
+              Add your first supplement to start selling on
               Nutraatoz.
             </p>
             <Button onClick={openCreate} size="sm" disabled={!canEdit}>
