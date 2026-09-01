@@ -11,14 +11,15 @@ export default function CtaBand() {
           <div className="relative z-10 mx-auto max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur">
               <Sparkles className="h-4 w-4" />
-              Join 40+ verified wellness brands
+              Grow your nutraceutical brand
             </span>
             <h2 className="mt-5 font-serif text-3xl font-semibold leading-tight text-white sm:text-5xl">
               Sell your supplements to a curated, high-intent audience.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm text-white/90 sm:text-base">
-              Self-onboard in minutes with FSSAI + GST verification and get split
-              settlements straight to your account. Zero setup fees.
+              Self-onboard with FSSAI + GST verification and reach customers
+              across India — a simple 15% marketplace commission and assisted
+              onboarding.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a
