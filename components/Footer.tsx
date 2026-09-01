@@ -20,7 +20,7 @@ const FOOTER_LINKS: Record<string, string> = {
   "New Arrivals": "/products",
   Bestsellers: "/products",
   About: "/about",
-  "Sell on Nutraatoz": "/vendor/onboarding",
+  "Sell on Nutraatoz": "/sell-on-nutraatoz",
   "Vendor Login": "/vendor/login",
   Careers: "/careers",
   Contact: "/contact",

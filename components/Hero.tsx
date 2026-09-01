@@ -61,7 +61,7 @@ export default function Hero() {
                 Find Products by Goal
               </a>
               <a
-                href="/vendor/onboarding"
+                href="/sell-on-nutraatoz"
                 className="inline-flex items-center gap-2 rounded-full border border-berry/30 bg-berry/5 px-6 py-4 text-sm font-bold text-berry transition-all hover:-translate-y-0.5 hover:bg-berry/10"
               >
                 <Store className="h-4 w-4" />
