@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import * as Icons from "lucide-react";
-import { Target, ArrowRight } from "lucide-react";
+import { Target, ArrowRight, Sparkles } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import { GOALS } from "@/lib/goals";
@@ -43,6 +43,29 @@ export default async function GoalsIndexPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+          <Link
+            href="/finder"
+            className="group mb-8 flex flex-col items-start justify-between gap-4 overflow-hidden rounded-3xl border border-coral/20 bg-white p-6 shadow-card transition-transform hover:-translate-y-1 sm:flex-row sm:items-center"
+          >
+            <div className="flex items-center gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-citrus-gradient text-white shadow-glow-coral">
+                <Sparkles className="h-6 w-6" />
+              </span>
+              <div>
+                <p className="font-serif text-lg font-semibold text-ink">
+                  Not sure where to start?
+                </p>
+                <p className="text-sm text-mist">
+                  Take the 30-second Wellness Finder and get matched products.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-citrus-gradient px-6 py-3 text-sm font-bold text-white shadow-glow-coral">
+              Start the finder
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {GOALS.map((goal) => {
               const Icon = ((Icons as unknown as Record<string, IconType>)[
