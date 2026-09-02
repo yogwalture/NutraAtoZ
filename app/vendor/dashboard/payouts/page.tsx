@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Wallet,
   Clock,
@@ -7,8 +8,14 @@ import {
   FileBadge,
   Landmark,
   CalendarClock,
+  FileText,
+  ChevronRight,
 } from "lucide-react";
-import { getVendorContext, getVendorOrderItems } from "@/lib/vendorData";
+import {
+  getVendorContext,
+  getVendorOrderItems,
+  getVendorStatements,
+} from "@/lib/vendorData";
 import { formatINR, formatDate, daysUntil } from "@/lib/format";
 import StatCard from "@/components/dashboard/StatCard";
 import StatusBadge from "@/components/dashboard/StatusBadge";
@@ -18,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 export default async function PayoutsPage() {
   const ctx = await getVendorContext();
   const items = ctx.vendorId ? await getVendorOrderItems(ctx.vendorId) : [];
+  const statements = ctx.vendorId ? await getVendorStatements(ctx.vendorId) : [];
 
   const settled = items
     .filter((i) => i.order_status?.toUpperCase() === "PAID")
@@ -106,6 +114,48 @@ export default async function PayoutsPage() {
                       <StatusBadge status={o.order_status} />
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Monthly statements */}
+          <div className="mt-6 overflow-hidden rounded-xl2 border border-border bg-card shadow-card">
+            <div className="border-b border-border px-5 py-4">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <FileText className="h-4 w-4 text-primary" />
+                Monthly statements
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Downloadable settlement statements (PDF) per month
+              </p>
+            </div>
+            {statements.length === 0 ? (
+              <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+                Statements appear here once you have orders in a month.
+              </p>
+            ) : (
+              <div className="divide-y divide-border">
+                {statements.map((s) => (
+                  <Link
+                    key={s.month}
+                    href={`/vendor/dashboard/payouts/statement/${s.month}`}
+                    className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-primary/[0.03]"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {s.orderCount} order{s.orderCount === 1 ? "" : "s"} ·{" "}
+                        gross {formatINR(s.gross)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-primary">
+                        {formatINR(s.payout)}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             )}

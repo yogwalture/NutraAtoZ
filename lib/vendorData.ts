@@ -249,6 +249,119 @@ export async function getOverviewStats(
 }
 
 /* ------------------------------------------------------------------ *
+ * Payout statements (monthly settlement summaries)
+ * ------------------------------------------------------------------ */
+
+export interface StatementSummary {
+  month: string; // YYYY-MM
+  label: string; // "September 2026"
+  gross: number;
+  commission: number;
+  payout: number;
+  orderCount: number;
+  lineCount: number;
+}
+
+export interface StatementLine {
+  id: string;
+  orderId: string;
+  date: string | null;
+  productTitle: string;
+  gross: number;
+  commission: number;
+  payout: number;
+  status: string;
+}
+
+export interface VendorStatement {
+  summary: StatementSummary;
+  lines: StatementLine[];
+}
+
+function monthLabel(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  if (!y || !m) return month;
+  return new Date(y, m - 1, 1).toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/** Monthly settlement summaries for a vendor, newest month first. */
+export async function getVendorStatements(
+  vendorId: string
+): Promise<StatementSummary[]> {
+  const items = await getVendorOrderItems(vendorId, 2000);
+  const byMonth = new Map<string, StatementSummary>();
+  for (const i of items) {
+    const month = (i.order_created_at ?? "").slice(0, 7);
+    if (!month) continue;
+    const s =
+      byMonth.get(month) ??
+      ({
+        month,
+        label: monthLabel(month),
+        gross: 0,
+        commission: 0,
+        payout: 0,
+        orderCount: 0,
+        lineCount: 0,
+      } as StatementSummary);
+    s.gross += i.price;
+    s.commission += i.commission_amount;
+    s.payout += i.vendor_payout_amount;
+    s.lineCount += 1;
+    byMonth.set(month, s);
+  }
+  // distinct orders per month
+  const ordersByMonth = new Map<string, Set<string>>();
+  for (const i of items) {
+    const month = (i.order_created_at ?? "").slice(0, 7);
+    if (!month) continue;
+    const set = ordersByMonth.get(month) ?? new Set<string>();
+    set.add(i.order_id);
+    ordersByMonth.set(month, set);
+  }
+  for (const [month, s] of byMonth) s.orderCount = ordersByMonth.get(month)?.size ?? 0;
+
+  return Array.from(byMonth.values()).sort((a, b) => b.month.localeCompare(a.month));
+}
+
+/** A single month's statement with line items. null if the month has none. */
+export async function getVendorStatement(
+  vendorId: string,
+  month: string
+): Promise<VendorStatement | null> {
+  const items = (await getVendorOrderItems(vendorId, 2000)).filter(
+    (i) => (i.order_created_at ?? "").slice(0, 7) === month
+  );
+  if (items.length === 0) return null;
+
+  const lines: StatementLine[] = items.map((i) => ({
+    id: i.id,
+    orderId: i.order_id,
+    date: i.order_created_at,
+    productTitle: i.product_title,
+    gross: i.price,
+    commission: i.commission_amount,
+    payout: i.vendor_payout_amount,
+    status: i.order_status,
+  }));
+
+  const summary: StatementSummary = {
+    month,
+    label: monthLabel(month),
+    gross: lines.reduce((s, l) => s + l.gross, 0),
+    commission: lines.reduce((s, l) => s + l.commission, 0),
+    payout: lines.reduce((s, l) => s + l.payout, 0),
+    orderCount: new Set(lines.map((l) => l.orderId)).size,
+    lineCount: lines.length,
+  };
+
+  return { summary, lines };
+}
+
+/* ------------------------------------------------------------------ *
  * Vendor insights (per-vendor funnel + performance)
  * ------------------------------------------------------------------ */
 

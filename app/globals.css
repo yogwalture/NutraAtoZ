@@ -326,3 +326,24 @@
     transition: none;
   }
 }
+
+/* ---- Print: isolate the statement sheet ---- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-sheet,
+  .print-sheet * {
+    visibility: visible;
+  }
+  .print-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
