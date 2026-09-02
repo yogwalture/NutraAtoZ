@@ -16,6 +16,7 @@ import AddToCartButton from "@/components/cart/AddToCartButton";
 import ProductActions from "@/components/product/ProductActions";
 import PincodeCheck from "@/components/product/PincodeCheck";
 import ReviewForm from "@/components/product/ReviewForm";
+import TrackEvent from "@/components/analytics/TrackEvent";
 import {
   getStoreProductById,
   getMoreFromVendor,
@@ -76,6 +77,7 @@ export default async function ProductDetailPage({
 
   return (
     <div className="min-h-screen bg-cream">
+      <TrackEvent event="product_view" payload={{ productId: p.id }} />
       <SiteNav />
       <main className="pb-24 md:pb-0">
         <div className="mx-auto max-w-6xl px-5 py-6 sm:px-8">

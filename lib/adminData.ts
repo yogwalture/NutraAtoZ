@@ -268,6 +268,86 @@ export async function getAllProducts(): Promise<AdminProduct[]> {
   }));
 }
 
+/* ------------------------------------------------------------------ *
+ * Analytics (first-party funnel)
+ * ------------------------------------------------------------------ */
+
+export interface AnalyticsSummary {
+  days: number;
+  totals: Record<string, number>;
+  funnel: { label: string; event: string; count: number }[];
+  topProducts: { id: string; title: string; views: number }[];
+  purchaseValue: number;
+  eventCount: number;
+}
+
+export async function getAnalyticsSummary(
+  days = 30
+): Promise<AnalyticsSummary> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: rows } = await supabaseAdmin
+    .from("analytics_events")
+    .select("event, product_id, meta, created_at")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(20000);
+
+  const events = rows ?? [];
+  const totals: Record<string, number> = {};
+  const productViews = new Map<string, number>();
+  let purchaseValue = 0;
+
+  for (const e of events) {
+    const ev = String(e.event);
+    totals[ev] = (totals[ev] ?? 0) + 1;
+    if (ev === "product_view" && e.product_id) {
+      productViews.set(e.product_id, (productViews.get(e.product_id) ?? 0) + 1);
+    }
+    if (ev === "purchase" && e.meta && typeof e.meta === "object") {
+      const t = Number((e.meta as Record<string, unknown>).total);
+      if (Number.isFinite(t)) purchaseValue += t;
+    }
+  }
+
+  const funnel = [
+    { label: "Product views", event: "product_view" },
+    { label: "Add to cart", event: "add_to_cart" },
+    { label: "Began checkout", event: "begin_checkout" },
+    { label: "Purchases", event: "purchase" },
+  ].map((s) => ({ ...s, count: totals[s.event] ?? 0 }));
+
+  // Resolve titles for the most-viewed products.
+  const topIds = Array.from(productViews.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+  let titleById = new Map<string, string>();
+  if (topIds.length > 0) {
+    const { data: prods } = await supabaseAdmin
+      .from("products")
+      .select("id, title")
+      .in(
+        "id",
+        topIds.map(([id]) => id)
+      );
+    titleById = new Map((prods ?? []).map((p) => [p.id, p.title]));
+  }
+  const topProducts = topIds.map(([id, views]) => ({
+    id,
+    title: titleById.get(id) ?? "Unknown product",
+    views,
+  }));
+
+  return {
+    days,
+    totals,
+    funnel,
+    topProducts,
+    purchaseValue,
+    eventCount: events.length,
+  };
+}
+
 export interface AdminOrderItem {
   id: string;
   order_id: string;

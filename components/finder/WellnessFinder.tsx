@@ -13,6 +13,7 @@ import {
 import type { StoreProduct } from "@/lib/publicData";
 import { GOALS, getGoal, textMatchesGoal } from "@/lib/goals";
 import AddToCartButton from "@/components/cart/AddToCartButton";
+import { track } from "@/lib/track";
 
 type Diet = "ANY" | "VEG" | "VEGAN";
 type Budget = "ANY" | "LOW" | "MID" | "HIGH";
@@ -413,7 +414,12 @@ export default function WellnessFinder({ products }: { products: StoreProduct[] 
           </button>
         ) : (
           <button
-            onClick={() => setSubmitted(true)}
+            onClick={() => {
+              track("finder_complete", {
+                meta: { goals: goals.length, hasText: need.trim().length > 0 },
+              });
+              setSubmitted(true);
+            }}
             className="shine inline-flex items-center gap-2 rounded-full bg-citrus-gradient px-7 py-3 text-sm font-bold text-white shadow-glow-coral transition-transform hover:-translate-y-0.5"
           >
             <Sparkles className="h-4 w-4" />

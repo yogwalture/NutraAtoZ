@@ -6,6 +6,7 @@ import { FlaskConical, ShieldCheck, ChevronRight, Target } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import AddToCartButton from "@/components/cart/AddToCartButton";
+import TrackEvent from "@/components/analytics/TrackEvent";
 import { GOALS, getGoal } from "@/lib/goals";
 import { getProductsByGoal } from "@/lib/publicData";
 
@@ -44,6 +45,7 @@ export default async function GoalPage({
 
   return (
     <div className="min-h-screen bg-cream">
+      <TrackEvent event="goal_view" payload={{ goal: goal.slug }} />
       <SiteNav />
       <main className="pb-24 md:pb-0">
         <section className={`relative overflow-hidden bg-gradient-to-br ${goal.gradient}`}>

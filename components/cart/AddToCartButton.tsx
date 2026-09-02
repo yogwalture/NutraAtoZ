@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Plus, Check } from "lucide-react";
 import { useCart } from "./CartProvider";
+import { track } from "@/lib/track";
 
 interface AddToCartButtonProps {
   id: string;
@@ -27,6 +28,7 @@ export default function AddToCartButton({
 
   function onAdd() {
     add({ id, title, price, brand });
+    track("add_to_cart", { productId: id });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1200);
   }

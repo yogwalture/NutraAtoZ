@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ShoppingBag, Check, Zap } from "lucide-react";
 import { useCart } from "@/components/cart/CartProvider";
+import { track } from "@/lib/track";
 
 export default function ProductActions({
   id,
@@ -24,12 +25,14 @@ export default function ProductActions({
 
   function addToCart() {
     add({ id, title, price, brand });
+    track("add_to_cart", { productId: id });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1400);
   }
 
   function buyNow() {
     add({ id, title, price, brand });
+    track("add_to_cart", { productId: id, meta: { buyNow: true } });
     router.push("/checkout");
   }
 

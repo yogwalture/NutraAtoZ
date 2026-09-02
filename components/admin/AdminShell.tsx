@@ -8,6 +8,7 @@ import {
   Package,
   ReceiptText,
   Percent,
+  BarChart3,
   Menu,
   X,
   LogOut,
@@ -20,6 +21,7 @@ const NAV = [
   { label: "Vendors", href: "/admin/vendors", icon: Store },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Orders", href: "/admin/orders", icon: ReceiptText },
+  { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Commissions", href: "/admin/commissions", icon: Percent },
 ];
 

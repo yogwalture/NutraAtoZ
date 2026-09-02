@@ -133,6 +133,13 @@ export async function placeCodOrder(
 
   if (itemsErr) return { ok: false, error: itemsErr.message };
 
+  // First-party analytics: record the purchase (no PII).
+  await supabaseAdmin.from("analytics_events").insert({
+    event: "purchase",
+    path: "/checkout",
+    meta: { total, items: itemRows.length, signedIn: customerId != null },
+  });
+
   revalidatePath("/vendor/dashboard");
   revalidatePath("/admin");
   return { ok: true, orderId: orderRow.id, total };

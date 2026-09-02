@@ -13,12 +13,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/components/cart/CartProvider";
 import { placeCodOrder } from "@/app/checkout/actions";
+import { track } from "@/lib/track";
 
 export default function CheckoutContents() {
   const { items, subtotal, clear, hydrated } = useCart();
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [done, setDone] = React.useState<{ id: string } | null>(null);
+
+  const beganCheckout = React.useRef(false);
+  React.useEffect(() => {
+    if (hydrated && items.length > 0 && !beganCheckout.current) {
+      beganCheckout.current = true;
+      track("begin_checkout", { meta: { items: items.length } });
+    }
+  }, [hydrated, items.length]);
 
   const shipping = subtotal >= 999 ? 0 : 49;
   const total = subtotal + shipping;
