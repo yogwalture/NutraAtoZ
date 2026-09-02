@@ -247,3 +247,118 @@ export async function getOverviewStats(
     recentOrders: items.slice(0, 6),
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * Vendor insights (per-vendor funnel + performance)
+ * ------------------------------------------------------------------ */
+
+export interface VendorInsights {
+  days: number;
+  views: number;
+  addToCart: number;
+  orderLines: number;
+  revenue: number;
+  payouts: number;
+  commission: number;
+  /** Storefront conversion: orderLines / views. */
+  conversionPct: number;
+  topProducts: { id: string; title: string; views: number; orders: number }[];
+  lowStock: { id: string; title: string; stock: number }[];
+}
+
+const LOW_STOCK_THRESHOLD = 5;
+
+export async function getVendorInsights(
+  vendorId: string,
+  days = 30
+): Promise<VendorInsights> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const products = await getVendorProducts(vendorId);
+  const productIds = products.map((p) => p.id);
+  const titleById = new Map(products.map((p) => [p.id, p.title]));
+
+  const empty: VendorInsights = {
+    days,
+    views: 0,
+    addToCart: 0,
+    orderLines: 0,
+    revenue: 0,
+    payouts: 0,
+    commission: 0,
+    conversionPct: 0,
+    topProducts: [],
+    lowStock: products
+      .filter((p) => p.stock != null && (p.stock as number) <= LOW_STOCK_THRESHOLD)
+      .map((p) => ({ id: p.id, title: p.title, stock: p.stock as number }))
+      .sort((a, b) => a.stock - b.stock)
+      .slice(0, 10),
+  };
+  if (productIds.length === 0) return empty;
+
+  // Analytics events scoped to this vendor's products.
+  const { data: events } = await supabaseAdmin
+    .from("analytics_events")
+    .select("event, product_id, created_at")
+    .in("product_id", productIds)
+    .gte("created_at", since)
+    .limit(20000);
+
+  const viewsByProduct = new Map<string, number>();
+  let views = 0;
+  let addToCart = 0;
+  for (const e of events ?? []) {
+    if (e.event === "product_view") {
+      views += 1;
+      if (e.product_id)
+        viewsByProduct.set(e.product_id, (viewsByProduct.get(e.product_id) ?? 0) + 1);
+    } else if (e.event === "add_to_cart") {
+      addToCart += 1;
+    }
+  }
+
+  // Orders for this vendor in the window.
+  const { data: items } = await supabaseAdmin
+    .from("order_items")
+    .select("product_id, price, commission_amount, vendor_payout_amount, order_id, created_at")
+    .eq("vendor_id", vendorId)
+    .gte("created_at", since)
+    .limit(20000);
+
+  let revenue = 0;
+  let payouts = 0;
+  let commission = 0;
+  const ordersByProduct = new Map<string, number>();
+  for (const i of items ?? []) {
+    revenue += Number(i.price) || 0;
+    payouts += Number(i.vendor_payout_amount) || 0;
+    commission += Number(i.commission_amount) || 0;
+    if (i.product_id)
+      ordersByProduct.set(i.product_id, (ordersByProduct.get(i.product_id) ?? 0) + 1);
+  }
+  const orderLines = (items ?? []).length;
+
+  const topProducts = Array.from(
+    new Set([...viewsByProduct.keys(), ...ordersByProduct.keys()])
+  )
+    .map((id) => ({
+      id,
+      title: titleById.get(id) ?? "Product",
+      views: viewsByProduct.get(id) ?? 0,
+      orders: ordersByProduct.get(id) ?? 0,
+    }))
+    .sort((a, b) => b.views - a.views || b.orders - a.orders)
+    .slice(0, 8);
+
+  return {
+    ...empty,
+    views,
+    addToCart,
+    orderLines,
+    revenue,
+    payouts,
+    commission,
+    conversionPct: views > 0 ? Math.round((orderLines / views) * 1000) / 10 : 0,
+    topProducts,
+  };
+}
