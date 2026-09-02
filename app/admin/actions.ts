@@ -289,3 +289,86 @@ export async function setProductActive(
   revalidatePath("/admin/products");
   return { ok: true };
 }
+
+/* ------------------------------------------------------------------ *
+ * Vendor acquisition CRM (leads)
+ * ------------------------------------------------------------------ */
+
+const LEAD_STAGES = ["LEAD", "CONTACTED", "ONBOARDING", "LIVE", "LOST"];
+
+function leadFields(formData: FormData) {
+  const rawStage = String(formData.get("stage") ?? "LEAD").trim().toUpperCase();
+  return {
+    company_name: str(formData.get("company_name")),
+    contact_name: str(formData.get("contact_name")),
+    contact_email: str(formData.get("contact_email")),
+    contact_phone: str(formData.get("contact_phone")),
+    city: str(formData.get("city")),
+    state: str(formData.get("state")),
+    source: str(formData.get("source")),
+    stage: LEAD_STAGES.includes(rawStage) ? rawStage : "LEAD",
+    notes: str(formData.get("notes")),
+  };
+}
+
+export async function adminCreateLead(formData: FormData): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const fields = leadFields(formData);
+  if (!fields.company_name)
+    return { ok: false, error: "Company name is required." };
+
+  const { error } = await supabaseAdmin.from("vendor_leads").insert(fields);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/leads");
+  return { ok: true };
+}
+
+export async function adminUpdateLead(
+  id: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const fields = leadFields(formData);
+  if (!fields.company_name)
+    return { ok: false, error: "Company name is required." };
+
+  const { error } = await supabaseAdmin
+    .from("vendor_leads")
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/leads");
+  return { ok: true };
+}
+
+export async function adminSetLeadStage(
+  id: string,
+  stage: string
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+  const s = String(stage).trim().toUpperCase();
+  if (!LEAD_STAGES.includes(s)) return { ok: false, error: "Invalid stage." };
+
+  const { error } = await supabaseAdmin
+    .from("vendor_leads")
+    .update({ stage: s, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/leads");
+  return { ok: true };
+}
+
+export async function adminDeleteLead(id: string): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const { error } = await supabaseAdmin.from("vendor_leads").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/leads");
+  return { ok: true };
+}

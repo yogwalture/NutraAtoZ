@@ -269,6 +269,37 @@ export async function getAllProducts(): Promise<AdminProduct[]> {
 }
 
 /* ------------------------------------------------------------------ *
+ * Vendor acquisition CRM (leads)
+ * ------------------------------------------------------------------ */
+
+export type LeadStage = "LEAD" | "CONTACTED" | "ONBOARDING" | "LIVE" | "LOST";
+
+export interface VendorLead {
+  id: string;
+  company_name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  city: string | null;
+  state: string | null;
+  source: string | null;
+  stage: LeadStage;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getAllLeads(): Promise<VendorLead[]> {
+  const { data } = await supabaseAdmin
+    .from("vendor_leads")
+    .select(
+      "id, company_name, contact_name, contact_email, contact_phone, city, state, source, stage, notes, created_at, updated_at"
+    )
+    .order("updated_at", { ascending: false });
+  return (data ?? []) as VendorLead[];
+}
+
+/* ------------------------------------------------------------------ *
  * Analytics (first-party funnel)
  * ------------------------------------------------------------------ */
 

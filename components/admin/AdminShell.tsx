@@ -9,6 +9,7 @@ import {
   ReceiptText,
   Percent,
   BarChart3,
+  Contact,
   Menu,
   X,
   LogOut,
@@ -19,6 +20,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabaseBrowserClient";
 const NAV = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Vendors", href: "/admin/vendors", icon: Store },
+  { label: "Leads", href: "/admin/leads", icon: Contact },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Orders", href: "/admin/orders", icon: ReceiptText },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
