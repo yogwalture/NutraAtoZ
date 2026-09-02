@@ -43,7 +43,7 @@ export interface StoreProductDetail extends StoreProduct {
 }
 
 const DETAIL_SELECT =
-  "id, title, price, weight_gms, description, ingredients, stock, discount_type, discount_value, attributes, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, vendor_id, is_active";
+  "id, title, price, weight_gms, description, ingredients, stock, discount_type, discount_value, attributes, goals, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, vendor_id, is_active";
 
 function coerceCoa(s: unknown): CoaStatus {
   return s === "VENDOR_PROVIDED" ||
@@ -92,6 +92,7 @@ export async function getStoreProductById(
     description: p.description,
     stock: p.stock,
     attributes: parseAttributes(p.attributes),
+    goals: Array.isArray(p.goals) ? (p.goals as string[]) : [],
     ingredients: p.ingredients ?? null,
     coaUrl: p.lab_tested_url ?? null,
     coaStatus: coerceCoa(p.coa_status),
