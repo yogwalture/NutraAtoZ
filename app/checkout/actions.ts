@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin, isSupabaseAdminConfigured } from "@/lib/supabaseAdmin";
+import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 
 export interface CheckoutLine {
   id: string; // product id
@@ -99,10 +100,23 @@ export async function placeCodOrder(
     return { ok: false, error: "No valid items to order." };
   }
 
+  // Link the order to the signed-in customer (if any) so their purchase can
+  // back a verified review later. Guest checkout stays anonymous.
+  let customerId: string | null = null;
+  try {
+    const supa = createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supa.auth.getUser();
+    customerId = user?.id ?? null;
+  } catch {
+    customerId = null;
+  }
+
   const { data: orderRow, error: orderErr } = await supabaseAdmin
     .from("orders")
     .insert({
-      customer_id: null,
+      customer_id: customerId,
       total_amount: total,
       payment_mode: "COD",
       marketing_source: "SOCIAL",

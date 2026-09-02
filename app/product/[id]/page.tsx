@@ -15,11 +15,17 @@ import Footer from "@/components/Footer";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import ProductActions from "@/components/product/ProductActions";
 import PincodeCheck from "@/components/product/PincodeCheck";
+import ReviewForm from "@/components/product/ReviewForm";
 import {
   getStoreProductById,
   getMoreFromVendor,
   type CoaStatus,
 } from "@/lib/publicData";
+import {
+  getProductReviews,
+  getReviewSummary,
+  getReviewEligibility,
+} from "@/lib/reviews";
 
 export const revalidate = 30;
 
@@ -59,7 +65,12 @@ export default async function ProductDetailPage({
   const p = await getStoreProductById(params.id);
   if (!p) notFound();
 
-  const related = await getMoreFromVendor(p.vendorId, p.id, 4);
+  const [related, reviews, summary, eligibility] = await Promise.all([
+    getMoreFromVendor(p.vendorId, p.id, 4),
+    getProductReviews(p.id),
+    getReviewSummary(p.id),
+    getReviewEligibility(p.id),
+  ]);
   const coa = coaLabel(p.coaStatus);
   const inStock = p.stock === null || p.stock > 0;
 
@@ -101,6 +112,19 @@ export default async function ProductDetailPage({
               <h1 className="mt-1 font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
                 {p.title}
               </h1>
+
+              {summary.count > 0 && (
+                <a
+                  href="#reviews"
+                  className="mt-2 inline-flex items-center gap-2 text-sm text-mist hover:text-coral-600"
+                >
+                  <Stars value={Math.round(summary.average)} />
+                  <span className="font-medium">{summary.average.toFixed(1)}</span>
+                  <span>
+                    ({summary.count} review{summary.count === 1 ? "" : "s"})
+                  </span>
+                </a>
+              )}
 
               <div className="mt-4 flex items-baseline gap-3">
                 <span className="font-serif text-3xl font-bold text-ink">
@@ -223,11 +247,110 @@ export default async function ProductDetailPage({
                 </div>
               </Section>
 
-              {/* Reviews (verified-purchase only — none yet) */}
-              <Section title="Customer reviews">
-                <div className="flex items-center gap-2 text-sm text-mist">
-                  <Star className="h-4 w-4 text-mist/50" />
-                  No verified reviews yet. Only verified purchasers can review — be the first after your order.
+              {/* Reviews (verified purchase only) */}
+              <Section title="Customer reviews" id="reviews">
+                {summary.count > 0 ? (
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-serif text-4xl font-bold text-ink">
+                        {summary.average.toFixed(1)}
+                      </span>
+                      <div>
+                        <Stars value={Math.round(summary.average)} />
+                        <p className="mt-0.5 text-xs text-mist">
+                          {summary.count} verified review
+                          {summary.count === 1 ? "" : "s"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="min-w-[180px] flex-1 space-y-1">
+                      {[5, 4, 3, 2, 1].map((n) => {
+                        const c = summary.distribution[n] ?? 0;
+                        const pct = summary.count
+                          ? Math.round((c / summary.count) * 100)
+                          : 0;
+                        return (
+                          <div key={n} className="flex items-center gap-2 text-xs">
+                            <span className="w-3 text-mist">{n}</span>
+                            <Star className="h-3 w-3 fill-accent text-accent" />
+                            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+                              <span
+                                className="block h-full rounded-full bg-accent"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </span>
+                            <span className="w-6 text-right text-mist">{c}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="flex items-center gap-2 text-sm text-mist">
+                    <Star className="h-4 w-4 text-mist/50" />
+                    No verified reviews yet. Only verified purchasers can review —
+                    be the first after your order.
+                  </p>
+                )}
+
+                {/* Individual reviews */}
+                {reviews.length > 0 && (
+                  <ul className="mt-6 space-y-5 border-t border-coral/10 pt-5">
+                    {reviews.map((r) => (
+                      <li key={r.id}>
+                        <div className="flex items-center gap-2">
+                          <Stars value={r.rating} />
+                          {r.verifiedPurchase && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                              <BadgeCheck className="h-3 w-3" />
+                              Verified purchase
+                            </span>
+                          )}
+                        </div>
+                        {r.title && (
+                          <p className="mt-1.5 text-sm font-bold text-ink">
+                            {r.title}
+                          </p>
+                        )}
+                        {r.body && (
+                          <p className="mt-1 text-sm leading-relaxed text-mist">
+                            {r.body}
+                          </p>
+                        )}
+                        <p className="mt-1.5 text-xs text-mist">
+                          {r.reviewerName} ·{" "}
+                          {new Date(r.createdAt).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* Write-a-review affordance */}
+                <div className="mt-6 border-t border-coral/10 pt-5">
+                  {eligibility.canReview ? (
+                    <ReviewForm
+                      productId={p.id}
+                      alreadyReviewed={eligibility.alreadyReviewed}
+                    />
+                  ) : eligibility.signedIn ? (
+                    <p className="text-sm text-mist">
+                      Only verified purchasers can review this product. Once your
+                      order is placed, you can share your experience here.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-mist">
+                      <a href="/login" className="font-semibold text-coral-600 hover:underline">
+                        Sign in
+                      </a>{" "}
+                      to write a review. Reviews are limited to verified
+                      purchasers.
+                    </p>
+                  )}
                 </div>
               </Section>
             </div>
@@ -302,12 +425,33 @@ export default async function ProductDetailPage({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  id,
+}: {
+  title: string;
+  children: React.ReactNode;
+  id?: string;
+}) {
   return (
-    <div className="rounded-2xl border border-coral/15 bg-white p-5 shadow-card">
+    <div id={id} className="scroll-mt-24 rounded-2xl border border-coral/15 bg-white p-5 shadow-card">
       <h2 className="font-serif text-lg font-semibold text-ink" dangerouslySetInnerHTML={{ __html: title }} />
       <div className="mt-3">{children}</div>
     </div>
+  );
+}
+
+function Stars({ value }: { value: number }) {
+  return (
+    <span className="inline-flex items-center" aria-label={`${value} out of 5`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star
+          key={n}
+          className={`h-4 w-4 ${n <= value ? "fill-accent text-accent" : "text-mist/30"}`}
+        />
+      ))}
+    </span>
   );
 }
 
