@@ -13,6 +13,7 @@ import {
   AlertCircle,
   FlaskConical,
   Tag,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,11 @@ import {
   updateProduct,
   toggleProductActive,
   deleteProduct,
+  bulkSetActive,
+  bulkDelete,
+  bulkSetStock,
+  bulkAdjustPricePct,
+  duplicateProduct,
 } from "@/app/vendor/dashboard/products/actions";
 
 export default function ProductsManager({
@@ -47,6 +53,57 @@ export default function ProductsManager({
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
   const [busyId, setBusyId] = React.useState<string | null>(null);
+
+  // bulk selection
+  const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = React.useState(false);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleSelectAll() {
+    setSelected((prev) =>
+      prev.size === products.length ? new Set() : new Set(products.map((p) => p.id))
+    );
+  }
+  function runBulk(fn: (ids: string[]) => Promise<unknown>) {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    startTransition(async () => {
+      await fn(ids);
+      setSelected(new Set());
+      setBulkBusy(false);
+    });
+  }
+  function bulkStock() {
+    const v = window.prompt("Set stock for selected products to:");
+    if (v == null) return;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0) return;
+    runBulk((ids) => bulkSetStock(ids, n));
+  }
+  function bulkPrice() {
+    const v = window.prompt("Adjust price by percent (e.g. 10 or -15):");
+    if (v == null) return;
+    const n = Number(v);
+    if (!Number.isFinite(n)) return;
+    runBulk((ids) => bulkAdjustPricePct(ids, n));
+  }
+  function bulkDup() {
+    setBulkBusy(true);
+    const ids = Array.from(selected);
+    startTransition(async () => {
+      for (const id of ids) await duplicateProduct(id);
+      setSelected(new Set());
+      setBulkBusy(false);
+    });
+  }
 
   // form-local state for discount + attributes
   const [discountType, setDiscountType] = React.useState<DiscountType>(null);
@@ -139,6 +196,68 @@ export default function ProductsManager({
         </Button>
       </div>
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <span className="text-sm font-semibold text-primary">
+            {selected.size} selected
+          </span>
+          <span className="mx-1 h-4 w-px bg-border" />
+          {bulkBusy && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+          <button
+            onClick={() => runBulk((ids) => bulkSetActive(ids, true))}
+            disabled={!canEdit || bulkBusy}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary/10 disabled:opacity-40"
+          >
+            <Eye className="h-3.5 w-3.5" /> Activate
+          </button>
+          <button
+            onClick={() => runBulk((ids) => bulkSetActive(ids, false))}
+            disabled={!canEdit || bulkBusy}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary/10 disabled:opacity-40"
+          >
+            <EyeOff className="h-3.5 w-3.5" /> Hide
+          </button>
+          <button
+            onClick={bulkStock}
+            disabled={!canEdit || bulkBusy}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary/10 disabled:opacity-40"
+          >
+            <Package className="h-3.5 w-3.5" /> Set stock
+          </button>
+          <button
+            onClick={bulkPrice}
+            disabled={!canEdit || bulkBusy}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary/10 disabled:opacity-40"
+          >
+            <Tag className="h-3.5 w-3.5" /> Adjust price %
+          </button>
+          <button
+            onClick={bulkDup}
+            disabled={!canEdit || bulkBusy}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary/10 disabled:opacity-40"
+          >
+            <Copy className="h-3.5 w-3.5" /> Duplicate
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete ${selected.size} product(s)? This cannot be undone.`))
+                runBulk(bulkDelete);
+            }}
+            disabled={!canEdit || bulkBusy}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-40"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Delete
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* Table / list */}
       <div className="overflow-hidden rounded-xl2 border border-border bg-card shadow-card">
         {products.length === 0 ? (
@@ -159,7 +278,17 @@ export default function ProductsManager({
         ) : (
           <>
             <div className="hidden grid-cols-12 gap-3 border-b border-border px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground sm:grid">
-              <span className="col-span-4">Product</span>
+              <span className="col-span-4 flex items-center gap-2.5">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  checked={selected.size === products.length && products.length > 0}
+                  onChange={toggleSelectAll}
+                  disabled={!canEdit}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                Product
+              </span>
               <span className="col-span-3">Price</span>
               <span className="col-span-1">Comm.</span>
               <span className="col-span-2">Stock</span>
@@ -181,6 +310,14 @@ export default function ProductsManager({
                     className="grid grid-cols-1 items-center gap-3 px-5 py-3.5 sm:grid-cols-12"
                   >
                     <div className="col-span-4 flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${p.title}`}
+                        checked={selected.has(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                        disabled={!canEdit}
+                        className="h-4 w-4 shrink-0 rounded border-input accent-primary"
+                      />
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/5 text-primary/50">
                         <FlaskConical className="h-5 w-5" strokeWidth={1.5} />
                       </span>
