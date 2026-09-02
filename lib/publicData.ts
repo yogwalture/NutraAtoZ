@@ -5,6 +5,7 @@ import {
   parseAttributes,
   type ProductAttribute,
 } from "./pricing";
+import { GOALS, getGoal, textMatchesGoal } from "./goals";
 
 export interface StoreProduct {
   id: string;
@@ -20,6 +21,8 @@ export interface StoreProduct {
   description: string | null;
   stock: number | null;
   attributes: ProductAttribute[];
+  /** Vendor/admin-assigned wellness-goal slugs. */
+  goals: string[];
 }
 
 export type CoaStatus =
@@ -120,7 +123,7 @@ export async function getStoreProducts(limit = 12): Promise<StoreProduct[]> {
   const { data: products } = await supabaseAdmin
     .from("products")
     .select(
-      "id, title, price, weight_gms, description, stock, discount_type, discount_value, attributes, vendor_id, is_active, created_at"
+      "id, title, price, weight_gms, description, stock, discount_type, discount_value, attributes, goals, vendor_id, is_active, created_at"
     )
     .eq("is_active", true)
     .order("created_at", { ascending: false })
@@ -160,6 +163,42 @@ export async function getStoreProducts(limit = 12): Promise<StoreProduct[]> {
         description: p.description,
         stock: p.stock,
         attributes: parseAttributes(p.attributes),
+        goals: Array.isArray(p.goals) ? (p.goals as string[]) : [],
       };
     });
+}
+
+/** Searchable text blob for a product, used by the goal keyword fallback. */
+function goalHaystack(p: StoreProduct): string {
+  return [
+    p.title,
+    p.brand,
+    p.description ?? "",
+    p.attributes.map((a) => `${a.label} ${a.value}`).join(" "),
+  ].join(" ");
+}
+
+/** Does a product belong to a goal — by explicit tag first, else keywords. */
+function productInGoal(p: StoreProduct, slug: string): boolean {
+  if (p.goals.includes(slug)) return true;
+  const goal = getGoal(slug);
+  if (!goal) return false;
+  return textMatchesGoal(goalHaystack(p), goal);
+}
+
+/** Active products matched to a wellness goal (explicit tags + keyword fallback). */
+export async function getProductsByGoal(slug: string): Promise<StoreProduct[]> {
+  if (!getGoal(slug)) return [];
+  const all = await getStoreProducts(300);
+  return all.filter((p) => productInGoal(p, slug));
+}
+
+/** Map of goal slug -> number of matching active products. */
+export async function getGoalCounts(): Promise<Record<string, number>> {
+  const all = await getStoreProducts(300);
+  const counts: Record<string, number> = {};
+  for (const goal of GOALS) {
+    counts[goal.slug] = all.filter((p) => productInGoal(p, goal.slug)).length;
+  }
+  return counts;
 }

@@ -15,9 +15,9 @@ const SOCIALS = [
 ];
 
 const FOOTER_LINKS: Record<string, string> = {
-  Categories: "/#categories",
+  "Shop by Goal": "/goals",
   "Shop All": "/products",
-  "New Arrivals": "/products",
+  Categories: "/#categories",
   Bestsellers: "/products",
   About: "/about",
   "Sell on Nutraatoz": "/sell-on-nutraatoz",
@@ -61,7 +61,7 @@ export default function Footer() {
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             {[
-              ["Shop", ["Categories", "Shop All", "New Arrivals", "Bestsellers"]],
+              ["Shop", ["Shop by Goal", "Shop All", "Categories", "Bestsellers"]],
               ["Company", ["About", "Sell on Nutraatoz", "Vendor Login", "Careers", "Contact"]],
               ["Support", ["FAQ", "Shipping", "Returns", "Lab Reports"]],
             ].map(([title, links]) => (

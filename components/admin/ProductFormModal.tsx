@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { DiscountType, ProductAttribute } from "@/lib/pricing";
 import type { AdminProduct } from "@/lib/adminData";
+import { GOALS } from "@/lib/goals";
 import { adminCreateProduct, adminUpdateProduct } from "@/app/admin/actions";
 
 export interface VendorOption {
@@ -34,6 +35,11 @@ export default function ProductFormModal({
   const [attrs, setAttrs] = React.useState<ProductAttribute[]>(
     product?.attributes ?? []
   );
+  const [goals, setGoals] = React.useState<string[]>(product?.goals ?? []);
+
+  function toggleGoal(slug: string) {
+    setGoals((g) => (g.includes(slug) ? g.filter((s) => s !== slug) : [...g, slug]));
+  }
 
   function addAttr() {
     setAttrs((a) => [...a, { label: "", value: "" }]);
@@ -52,6 +58,7 @@ export default function ProductFormModal({
       "attributes",
       JSON.stringify(attrs.filter((a) => a.label.trim() && a.value.trim()))
     );
+    fd.set("goals", JSON.stringify(goals));
     setError(undefined);
     startTransition(async () => {
       const res = editing
@@ -174,6 +181,32 @@ export default function ProductFormModal({
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="rounded-xl border border-border bg-secondary/40 p-3.5">
+            <Label>Wellness goals</Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Which discovery pages should this product appear on?
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {GOALS.map((g) => {
+                const on = goals.includes(g.slug);
+                return (
+                  <button
+                    key={g.slug}
+                    type="button"
+                    onClick={() => toggleGoal(g.slug)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-input bg-background text-muted-foreground hover:bg-primary/5"
+                    }`}
+                  >
+                    {g.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="space-y-1.5">

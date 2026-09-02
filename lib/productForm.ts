@@ -42,6 +42,20 @@ export function parseProduct(formData: FormData) {
     formData.get("attributes") ? String(formData.get("attributes")) : "[]"
   );
 
+  // Wellness goals — a JSON array of goal slugs.
+  let goals: string[] = [];
+  const rawGoals = formData.get("goals");
+  if (rawGoals) {
+    try {
+      const parsed = JSON.parse(String(rawGoals));
+      if (Array.isArray(parsed)) {
+        goals = parsed.filter((g): g is string => typeof g === "string");
+      }
+    } catch {
+      goals = [];
+    }
+  }
+
   if (title.length < 2) return { error: "Title is required." as const };
   if (price == null || price < 0)
     return { error: "Enter a valid price." as const };
@@ -74,6 +88,7 @@ export function parseProduct(formData: FormData) {
       discount_type: discount_value == null ? null : discount_type,
       discount_value,
       attributes,
+      goals,
     },
   };
 }

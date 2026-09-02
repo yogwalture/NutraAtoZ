@@ -27,6 +27,7 @@ import {
   type ProductAttribute,
 } from "@/lib/pricing";
 import type { ProductRow } from "@/lib/vendorData";
+import { GOALS } from "@/lib/goals";
 import {
   createProduct,
   updateProduct,
@@ -50,10 +51,16 @@ export default function ProductsManager({
   // form-local state for discount + attributes
   const [discountType, setDiscountType] = React.useState<DiscountType>(null);
   const [attrs, setAttrs] = React.useState<ProductAttribute[]>([]);
+  const [goals, setGoals] = React.useState<string[]>([]);
 
   function resetForm(p: ProductRow | null) {
     setDiscountType(p?.discount_type ?? null);
     setAttrs(p?.attributes && p.attributes.length ? p.attributes : []);
+    setGoals(p?.goals ?? []);
+  }
+
+  function toggleGoal(slug: string) {
+    setGoals((g) => (g.includes(slug) ? g.filter((s) => s !== slug) : [...g, slug]));
   }
 
   function openCreate() {
@@ -86,6 +93,7 @@ export default function ProductsManager({
       "attributes",
       JSON.stringify(attrs.filter((a) => a.label.trim() && a.value.trim()))
     );
+    fd.set("goals", JSON.stringify(goals));
     setError(undefined);
     startTransition(async () => {
       const res = editing
@@ -406,6 +414,34 @@ export default function ProductsManager({
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Wellness goals */}
+              <div className="rounded-xl border border-border bg-secondary/40 p-3.5">
+                <Label>Wellness goals</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Tag the goals this product supports so it appears on the right
+                  discovery pages.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {GOALS.map((g) => {
+                    const on = goals.includes(g.slug);
+                    return (
+                      <button
+                        key={g.slug}
+                        type="button"
+                        onClick={() => toggleGoal(g.slug)}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          on
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-input bg-background text-muted-foreground hover:bg-primary/5"
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="space-y-1.5">

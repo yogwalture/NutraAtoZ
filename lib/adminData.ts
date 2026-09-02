@@ -216,6 +216,7 @@ export interface AdminProduct {
   discount_type: DiscountType;
   discount_value: number | null;
   attributes: ProductAttribute[];
+  goals: string[];
   is_active: boolean | null;
   vendor_id: string;
   vendor_name: string;
@@ -225,7 +226,7 @@ export async function getAllProducts(): Promise<AdminProduct[]> {
   const { data: products } = await supabaseAdmin
     .from("products")
     .select(
-      "id, title, price, commission_pct, stock, weight_gms, description, ingredients, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, discount_type, discount_value, attributes, is_active, vendor_id, created_at"
+      "id, title, price, commission_pct, stock, weight_gms, description, ingredients, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, discount_type, discount_value, attributes, goals, is_active, vendor_id, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -260,6 +261,7 @@ export async function getAllProducts(): Promise<AdminProduct[]> {
         : null,
     discount_value: p.discount_value,
     attributes: parseAttributes(p.attributes),
+    goals: Array.isArray(p.goals) ? (p.goals as string[]) : [],
     is_active: p.is_active,
     vendor_id: p.vendor_id,
     vendor_name: nameById.get(p.vendor_id) ?? "Vendor",

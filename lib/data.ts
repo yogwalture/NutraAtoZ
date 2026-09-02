@@ -1,6 +1,6 @@
 import {
   Home,
-  LayoutGrid,
+  Target,
   FlaskConical,
   ShoppingBag,
   User,
@@ -16,7 +16,7 @@ export interface NavLink {
 
 export const navLinks: NavLink[] = [
   { label: "Home", href: "/", icon: Home },
-  { label: "Categories", href: "/#categories", icon: LayoutGrid },
+  { label: "Goals", href: "/goals", icon: Target },
   { label: "Shop", href: "/products", icon: FlaskConical },
   { label: "Cart", href: "/cart", icon: ShoppingBag },
   { label: "Account", href: "/account", icon: User },

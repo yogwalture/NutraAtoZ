@@ -55,7 +55,7 @@ export default function Hero() {
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
-                href="/#categories"
+                href="/goals"
                 className="inline-flex items-center gap-2 rounded-full border border-coral/25 bg-white/70 px-8 py-4 text-sm font-bold text-coral-700 shadow-float backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white"
               >
                 Find Products by Goal
