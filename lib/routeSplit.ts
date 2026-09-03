@@ -23,7 +23,7 @@ export interface RouteTransfer {
 export interface LineBreakdown {
   product_id: string;
   vendor_id: string;
-  vendor_linked_id: string;
+  vendor_linked_id: string | null;
   quantity: number;
   commission_pct: number;
   line_total_paise: number;
@@ -36,6 +36,16 @@ export interface SplitResult {
   totalCommissionPaise: number;
   transfers: RouteTransfer[];
   lines: LineBreakdown[];
+}
+
+export interface OrderPlan {
+  amountPaise: number;
+  totalCommissionPaise: number;
+  lines: LineBreakdown[];
+  /** Route transfers — only populated when the order is fully splittable. */
+  transfers: RouteTransfer[];
+  /** True when every vendor has a linked account and an admin account is set. */
+  splittable: boolean;
 }
 
 export class SplitError extends Error {
@@ -220,4 +230,122 @@ export async function buildSplitForCart(
   }
 
   return { amountPaise, totalCommissionPaise, transfers, lines };
+}
+
+/**
+ * Standard-checkout plan: computes the order amount and per-line commission /
+ * payout ledger from live product prices, WITHOUT requiring vendors to have
+ * Razorpay linked accounts. Route transfers are attached only when the order
+ * is fully splittable (every vendor linked + an admin account configured);
+ * otherwise the platform account captures the full amount and vendor
+ * settlements are reconciled from the `order_items` ledger.
+ */
+export async function buildOrderPlan(cart: CartLine[]): Promise<OrderPlan> {
+  if (!Array.isArray(cart) || cart.length === 0) {
+    throw new SplitError("Cart is empty.");
+  }
+
+  const normalised = cart.map((l) => {
+    const quantity = Math.floor(Number(l.quantity));
+    if (!l.product_id || !Number.isFinite(quantity) || quantity < 1) {
+      throw new SplitError(`Invalid cart line for product ${l.product_id}.`);
+    }
+    return { product_id: String(l.product_id), quantity };
+  });
+
+  const productIds = Array.from(new Set(normalised.map((l) => l.product_id)));
+
+  const { data: products, error: prodErr } = await supabaseAdmin
+    .from("products")
+    .select("id, vendor_id, title, price, commission_pct, stock, is_active")
+    .in("id", productIds);
+  if (prodErr) throw new SplitError(`Failed to read products: ${prodErr.message}`, 500);
+  if (!products || products.length !== productIds.length) {
+    throw new SplitError("One or more products could not be found.", 404);
+  }
+
+  const vendorIds = Array.from(new Set(products.map((p) => p.vendor_id)));
+  const { data: vendors, error: vendErr } = await supabaseAdmin
+    .from("vendors")
+    .select("id, company_name, razorpay_linked_id, is_approved")
+    .in("id", vendorIds);
+  if (vendErr) throw new SplitError(`Failed to read vendors: ${vendErr.message}`, 500);
+
+  const vendorById = new Map((vendors ?? []).map((v) => [v.id, v]));
+  const productById = new Map(products.map((p) => [p.id, p]));
+
+  const lines: LineBreakdown[] = [];
+  const payoutByAccount = new Map<string, number>();
+  let amountPaise = 0;
+  let totalCommissionPaise = 0;
+  let allLinked = true;
+
+  for (const { product_id, quantity } of normalised) {
+    const product = productById.get(product_id)!;
+    const vendor = vendorById.get(product.vendor_id);
+    if (!vendor) throw new SplitError(`Vendor for "${product.title}" not found.`, 404);
+    if (!vendor.is_approved)
+      throw new SplitError(`"${vendor.company_name}" is not approved to sell yet.`, 409);
+    if (product.is_active === false)
+      throw new SplitError(`"${product.title}" is not available.`, 409);
+    if (product.stock != null && product.stock < quantity)
+      throw new SplitError(`"${product.title}" has insufficient stock.`, 409);
+
+    const pct =
+      product.commission_pct != null
+        ? Number(product.commission_pct)
+        : DEFAULT_COMMISSION_PCT;
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+      throw new SplitError(`Invalid commission on "${product.title}".`, 500);
+    }
+
+    const lineTotalPaise = toPaise(Number(product.price)) * quantity;
+    const commissionPaise = Math.round((lineTotalPaise * pct) / 100);
+    const vendorPayoutPaise = lineTotalPaise - commissionPaise;
+
+    amountPaise += lineTotalPaise;
+    totalCommissionPaise += commissionPaise;
+
+    const linkedId = vendor.razorpay_linked_id ?? null;
+    if (!linkedId) allLinked = false;
+    else {
+      payoutByAccount.set(
+        linkedId,
+        (payoutByAccount.get(linkedId) ?? 0) + vendorPayoutPaise
+      );
+    }
+
+    lines.push({
+      product_id,
+      vendor_id: vendor.id,
+      vendor_linked_id: linkedId,
+      quantity,
+      commission_pct: pct,
+      line_total_paise: lineTotalPaise,
+      commission_paise: commissionPaise,
+      vendor_payout_paise: vendorPayoutPaise,
+    });
+  }
+
+  // Only split when every vendor is linked AND we have an admin account for
+  // the commission leg — otherwise Route would reject the transfers.
+  const splittable = allLinked && Boolean(RAZORPAY_ADMIN_ACCOUNT_ID);
+  const transfers: RouteTransfer[] = [];
+  if (splittable) {
+    transfers.push({
+      account: RAZORPAY_ADMIN_ACCOUNT_ID,
+      amount: totalCommissionPaise,
+      currency: "INR",
+      notes: { kind: "platform_commission" },
+    });
+    payoutByAccount.forEach((amount, account) => {
+      transfers.push({ account, amount, currency: "INR", notes: { kind: "vendor_settlement" } });
+    });
+    const transferredTotal = transfers.reduce((s, t) => s + t.amount, 0);
+    if (transferredTotal > amountPaise) {
+      throw new SplitError("Transfer total exceeds order amount.", 500);
+    }
+  }
+
+  return { amountPaise, totalCommissionPaise, lines, transfers, splittable };
 }

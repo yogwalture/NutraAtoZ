@@ -5,19 +5,20 @@ import {
   RAZORPAY_KEY_ID,
 } from "@/lib/razorpay";
 import { isSupabaseAdminConfigured, supabaseAdmin } from "@/lib/supabaseAdmin";
-import {
-  buildSplitForCart,
-  SplitError,
-  type CartLine,
-} from "@/lib/routeSplit";
+import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
+import { buildOrderPlan, SplitError, type CartLine } from "@/lib/routeSplit";
 
 // Razorpay SDK needs the Node.js runtime (not Edge).
 export const runtime = "nodejs";
 
 interface CheckoutBody {
-  customer_id?: string;
   cart?: CartLine[];
   marketing_source?: "SOCIAL" | "OFFLINE_QR";
+}
+
+/** Flat shipping fee (paise) mirrors the storefront rule: free over ₹999. */
+function shippingPaise(subtotalPaise: number): number {
+  return subtotalPaise >= 99900 ? 0 : 4900;
 }
 
 export async function POST(request: Request) {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Server not configured. Set RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+          "Online payments are not configured yet. Set RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
       },
       { status: 503 }
     );
@@ -38,43 +39,80 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const { customer_id, cart, marketing_source } = body;
-  if (!customer_id) {
-    return NextResponse.json(
-      { error: "customer_id is required." },
-      { status: 400 }
-    );
+  const cart = body.cart ?? [];
+  if (!Array.isArray(cart) || cart.length === 0) {
+    return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
+  }
+
+  // Resolve the signed-in customer (optional — guests may pay too).
+  let customerId: string | null = null;
+  try {
+    const supa = createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supa.auth.getUser();
+    customerId = user?.id ?? null;
+  } catch {
+    customerId = null;
   }
 
   try {
-    // 1) Read commission % per product and build the dynamic split.
-    const split = await buildSplitForCart(cart ?? []);
+    // 1) Server-authoritative amount + per-line ledger (never trust the client).
+    const plan = await buildOrderPlan(cart);
+    const amountPaise = plan.amountPaise + shippingPaise(plan.amountPaise);
 
-    // 2) Create a Razorpay Route order with transfers attached — the money
-    //    splits automatically when the payment is captured.
+    // Razorpay requires a minimum of 100 paise (₹1).
+    if (amountPaise < 100) {
+      return NextResponse.json(
+        { error: "Order amount is below the ₹1 minimum." },
+        { status: 400 }
+      );
+    }
+
+    // 2) Create the Razorpay order (with Route transfers only if splittable).
     const receipt = `nutz_${Date.now()}`;
-    const order = await razorpay.orders.create({
-      amount: split.amountPaise,
+    const orderPayload: Record<string, unknown> = {
+      amount: amountPaise,
       currency: "INR",
       receipt,
-      transfers: split.transfers,
       notes: {
-        customer_id,
         platform: "nutraatoz",
-        commission_paise: String(split.totalCommissionPaise),
+        customer_id: customerId ?? "guest",
+        commission_paise: String(plan.totalCommissionPaise),
       },
-    } as Parameters<typeof razorpay.orders.create>[0] & {
-      transfers: typeof split.transfers;
-    });
+    };
+    if (plan.splittable && plan.transfers.length > 0) {
+      orderPayload.transfers = plan.transfers;
+    }
 
-    // 3) Persist a pending order + per-vendor order_items for our own ledger.
+    let order: { id: string };
+    try {
+      order = (await razorpay.orders.create(
+        orderPayload as Parameters<typeof razorpay.orders.create>[0]
+      )) as { id: string };
+    } catch (rzpErr) {
+      const status =
+        typeof rzpErr === "object" &&
+        rzpErr !== null &&
+        "statusCode" in rzpErr &&
+        (rzpErr as { statusCode?: number }).statusCode === 401
+          ? 401
+          : 500;
+      const message =
+        status === 401
+          ? "Razorpay authentication failed — check your API keys."
+          : "Could not create the payment order with Razorpay.";
+      return NextResponse.json({ error: message }, { status });
+    }
+
+    // 3) Persist a pending order + per-vendor ledger rows.
     const { data: orderRow, error: orderErr } = await supabaseAdmin
       .from("orders")
       .insert({
-        customer_id,
-        total_amount: split.amountPaise / 100,
+        customer_id: customerId,
+        total_amount: amountPaise / 100,
         payment_mode: "PREPAID",
-        marketing_source: marketing_source ?? "SOCIAL",
+        marketing_source: body.marketing_source ?? "SOCIAL",
         razorpay_order_id: order.id,
         status: "CREATED",
       })
@@ -88,7 +126,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const itemRows = split.lines.map((l) => ({
+    const itemRows = plan.lines.map((l) => ({
       order_id: orderRow.id,
       product_id: l.product_id,
       vendor_id: l.vendor_id,
@@ -96,11 +134,9 @@ export async function POST(request: Request) {
       commission_amount: l.commission_paise / 100,
       vendor_payout_amount: l.vendor_payout_paise / 100,
     }));
-
     const { error: itemsErr } = await supabaseAdmin
       .from("order_items")
       .insert(itemRows);
-
     if (itemsErr) {
       return NextResponse.json(
         { error: `Could not save order items: ${itemsErr.message}` },
@@ -108,15 +144,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4) Return what the Razorpay Checkout widget needs on the client.
+    // 4) Everything the Razorpay Checkout widget needs on the client.
     return NextResponse.json({
       key_id: RAZORPAY_KEY_ID,
       razorpay_order_id: order.id,
       order_id: orderRow.id,
-      amount: split.amountPaise,
+      amount: amountPaise,
       currency: "INR",
-      commission_paise: split.totalCommissionPaise,
-      transfers: split.transfers,
     });
   } catch (err) {
     if (err instanceof SplitError) {
@@ -124,6 +158,6 @@ export async function POST(request: Request) {
     }
     const message =
       err instanceof Error ? err.message : "Unexpected checkout error.";
-    return NextResponse.json({ error: message }, { status: 502 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

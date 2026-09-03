@@ -57,10 +57,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error } = await supabaseAdmin
+  const { data: updated, error } = await supabaseAdmin
     .from("orders")
     .update({ status: "PAID", razorpay_payment_id })
-    .eq("razorpay_order_id", razorpay_order_id);
+    .eq("razorpay_order_id", razorpay_order_id)
+    .select("id, total_amount")
+    .maybeSingle();
 
   if (error) {
     return NextResponse.json(
@@ -69,5 +71,12 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  // First-party analytics: record the online purchase (no PII).
+  await supabaseAdmin.from("analytics_events").insert({
+    event: "purchase",
+    path: "/checkout",
+    meta: { total: Number(updated?.total_amount ?? 0), mode: "PREPAID" },
+  });
+
+  return NextResponse.json({ ok: true, order_id: updated?.id ?? null });
 }
