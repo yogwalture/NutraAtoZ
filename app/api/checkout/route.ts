@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     let order: { id: string };
     try {
       order = (await razorpay.orders.create(
-        orderPayload as Parameters<typeof razorpay.orders.create>[0]
+        orderPayload as unknown as Parameters<typeof razorpay.orders.create>[0]
       )) as { id: string };
     } catch (rzpErr) {
       const status =
