@@ -46,13 +46,15 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: "Nutraatoz — Verified Nutraceutical Marketplace",
     description: SITE_DESC,
-    images: [{ url: "/nutraatoz-logo.png", alt: "Nutraatoz" }],
+    images: [
+      { url: "/og.png", width: 1200, height: 630, alt: "Nutraatoz — Verified Nutraceutical Marketplace" },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Nutraatoz — Verified Nutraceutical Marketplace",
     description: SITE_DESC,
-    images: ["/nutraatoz-logo.png"],
+    images: ["/og.png"],
   },
   icons: { icon: "/icon.png" },
   category: "shopping",

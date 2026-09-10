@@ -50,7 +50,7 @@ export async function generateMetadata({
       url: canonical,
       title: `${p.title} — ${p.brand}`,
       description: desc,
-      images: [{ url: "/nutraatoz-logo.png", alt: p.title }],
+      images: [{ url: "/og.png", width: 1200, height: 630, alt: p.title }],
     },
   };
 }
