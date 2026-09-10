@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin, isSupabaseAdminConfigured } from "@/lib/supabaseAdmin";
 import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
+import { createShipmentsForOrder } from "@/lib/fulfillment";
 
 export interface CheckoutLine {
   id: string; // product id
@@ -121,6 +122,14 @@ export async function placeCodOrder(
       payment_mode: "COD",
       marketing_source: "SOCIAL",
       status: "CONFIRMED",
+      customer_name: customer.name.trim(),
+      customer_phone: customer.phone.trim(),
+      customer_email: customer.email?.trim() || null,
+      ship_address: customer.address.trim(),
+      ship_city: customer.city.trim(),
+      ship_state: customer.state.trim(),
+      ship_pincode: customer.pincode.trim(),
+      shipping_status: "PENDING",
     })
     .select("id")
     .single();
@@ -132,6 +141,9 @@ export async function placeCodOrder(
     .insert(itemRows.map((r) => ({ ...r, order_id: orderRow.id })));
 
   if (itemsErr) return { ok: false, error: itemsErr.message };
+
+  // Best-effort: book Shiprocket shipments per vendor (no-op if unconfigured).
+  await createShipmentsForOrder(orderRow.id);
 
   // First-party analytics: record the purchase (no PII).
   await supabaseAdmin.from("analytics_events").insert({

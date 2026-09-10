@@ -9,6 +9,7 @@ import {
   Wallet,
   BarChart3,
   Upload,
+  Truck,
   Menu,
   X,
   ExternalLink,
@@ -24,6 +25,7 @@ const NAV = [
   { label: "Insights", href: "/vendor/dashboard/insights", icon: BarChart3 },
   { label: "Products", href: "/vendor/dashboard/products", icon: Package },
   { label: "Bulk import", href: "/vendor/dashboard/bulk", icon: Upload },
+  { label: "Shipping", href: "/vendor/dashboard/shipping", icon: Truck },
   { label: "Orders", href: "/vendor/dashboard/orders", icon: ReceiptText },
   { label: "Payouts", href: "/vendor/dashboard/payouts", icon: Wallet },
 ];

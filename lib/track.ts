@@ -33,6 +33,17 @@ function sessionId(): string | undefined {
 
 export function track(event: string, payload: TrackPayload = {}): void {
   if (typeof window === "undefined") return;
+
+  // Mirror funnel events to third-party pixels (Meta / GA4 / Google Ads).
+  if (
+    event === "product_view" ||
+    event === "add_to_cart" ||
+    event === "begin_checkout"
+  ) {
+    void import("./marketing").then((m) =>
+      m.fireMarketing(event, { productId: payload.productId })
+    );
+  }
   const body = JSON.stringify({
     event,
     path: payload.path ?? window.location.pathname,

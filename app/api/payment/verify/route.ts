@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { RAZORPAY_KEY_SECRET, isRazorpayConfigured } from "@/lib/razorpay";
 import { isSupabaseAdminConfigured, supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createShipmentsForOrder } from "@/lib/fulfillment";
 
 export const runtime = "nodejs";
 
@@ -77,6 +78,11 @@ export async function POST(request: Request) {
     path: "/checkout",
     meta: { total: Number(updated?.total_amount ?? 0), mode: "PREPAID" },
   });
+
+  // Best-effort: book Shiprocket shipments now that payment is confirmed.
+  if (updated?.id) {
+    await createShipmentsForOrder(updated.id);
+  }
 
   return NextResponse.json({ ok: true, order_id: updated?.id ?? null });
 }

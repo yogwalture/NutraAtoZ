@@ -9,12 +9,20 @@ export interface VendorRow {
   id: string;
   company_name: string | null;
   store_name?: string | null;
+  contact_person?: string | null;
   contact_email?: string | null;
+  contact_phone?: string | null;
+  address_line?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
   gstin: string | null;
   fssai_license_no: string | null;
   fssai_expiry: string | null;
   fssai_certificate_url?: string | null;
   razorpay_linked_id: string | null;
+  shiprocket_pickup_nickname?: string | null;
+  shiprocket_pickup_registered?: boolean | null;
   is_approved: boolean | null;
 }
 
@@ -82,7 +90,7 @@ export interface VendorOrderItem {
  * ------------------------------------------------------------------ */
 
 const VENDOR_SELECT =
-  "id, company_name, store_name, contact_email, gstin, fssai_license_no, fssai_expiry, fssai_certificate_url, razorpay_linked_id, is_approved";
+  "id, company_name, store_name, contact_person, contact_email, contact_phone, address_line, city, state, pincode, gstin, fssai_license_no, fssai_expiry, fssai_certificate_url, razorpay_linked_id, shiprocket_pickup_nickname, shiprocket_pickup_registered, is_approved";
 
 export async function getVendorContext(): Promise<VendorContext> {
   if (!isSupabaseAdminConfigured) {

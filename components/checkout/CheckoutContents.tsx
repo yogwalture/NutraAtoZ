@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useCart } from "@/components/cart/CartProvider";
 import { placeCodOrder } from "@/app/checkout/actions";
 import { track } from "@/lib/track";
+import { fireMarketing } from "@/lib/marketing";
 
 interface RazorpayInstance {
   open: () => void;
@@ -80,6 +81,7 @@ export default function CheckoutContents() {
     );
     setSubmitting(false);
     if (res.ok && res.orderId) {
+      fireMarketing("purchase", { value: total, currency: "INR", transactionId: res.orderId });
       setDone({ id: res.orderId, mode: "COD" });
       clear();
     } else {
@@ -95,6 +97,15 @@ export default function CheckoutContents() {
     const name = String(fd.get("name") ?? "");
     const email = String(fd.get("email") ?? "");
     const phone = String(fd.get("phone") ?? "");
+    const customer = {
+      name,
+      phone,
+      email,
+      address: String(fd.get("address") ?? ""),
+      city: String(fd.get("city") ?? ""),
+      state: String(fd.get("state") ?? ""),
+      pincode: String(fd.get("pincode") ?? ""),
+    };
 
     setPayingOnline(true);
     try {
@@ -110,6 +121,7 @@ export default function CheckoutContents() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cart: items.map((i) => ({ product_id: i.id, quantity: i.qty })),
+          customer,
         }),
       });
       const data = await res.json();
@@ -144,6 +156,11 @@ export default function CheckoutContents() {
             }),
           });
           if (vr.ok) {
+            fireMarketing("purchase", {
+              value: (data.amount ?? 0) / 100,
+              currency: "INR",
+              transactionId: data.order_id,
+            });
             setDone({ id: data.order_id, mode: "PREPAID" });
             clear();
           } else {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
+import MarketingScripts from "@/components/analytics/MarketingScripts";
 
 export const metadata: Metadata = {
   title: "Nutraatoz — Verified Nutraceutical Marketplace",
@@ -28,6 +29,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
+        <MarketingScripts />
         <CartProvider>{children}</CartProvider>
       </body>
     </html>

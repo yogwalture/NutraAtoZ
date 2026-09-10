@@ -11,9 +11,26 @@ import { buildOrderPlan, SplitError, type CartLine } from "@/lib/routeSplit";
 // Razorpay SDK needs the Node.js runtime (not Edge).
 export const runtime = "nodejs";
 
+interface CheckoutCustomer {
+  name?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+}
+
 interface CheckoutBody {
   cart?: CartLine[];
+  customer?: CheckoutCustomer;
   marketing_source?: "SOCIAL" | "OFFLINE_QR";
+}
+
+function cleanStr(v: unknown, max = 200): string | null {
+  if (typeof v !== "string") return null;
+  const s = v.trim();
+  return s ? s.slice(0, max) : null;
 }
 
 /** Flat shipping fee (paise) mirrors the storefront rule: free over ₹999. */
@@ -106,6 +123,7 @@ export async function POST(request: Request) {
     }
 
     // 3) Persist a pending order + per-vendor ledger rows.
+    const c = body.customer ?? {};
     const { data: orderRow, error: orderErr } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -115,6 +133,14 @@ export async function POST(request: Request) {
         marketing_source: body.marketing_source ?? "SOCIAL",
         razorpay_order_id: order.id,
         status: "CREATED",
+        customer_name: cleanStr(c.name),
+        customer_phone: cleanStr(c.phone, 15),
+        customer_email: cleanStr(c.email),
+        ship_address: cleanStr(c.address),
+        ship_city: cleanStr(c.city, 80),
+        ship_state: cleanStr(c.state, 80),
+        ship_pincode: cleanStr(c.pincode, 10),
+        shipping_status: "PENDING",
       })
       .select("id")
       .single();
