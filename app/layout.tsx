@@ -3,10 +3,84 @@ import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
 import MarketingScripts from "@/components/analytics/MarketingScripts";
 
+const SITE_URL = "https://nutraatoz.com";
+const SITE_NAME = "Nutraatoz";
+const SITE_DESC =
+  "India's curated marketplace for FSSAI-verified nutraceuticals and supplements — shop by wellness goal, with documented ingredients and Certificate of Analysis on request.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Nutraatoz — Verified Nutraceutical Marketplace",
-  description:
-    "A curated marketplace of FSSAI-verified premium supplements and wellness essentials.",
+  description: SITE_DESC,
+  applicationName: SITE_NAME,
+  keywords: [
+    "nutraceuticals",
+    "supplements India",
+    "FSSAI verified supplements",
+    "vitamins",
+    "protein",
+    "omega-3",
+    "ashwagandha",
+    "wellness marketplace",
+    "buy supplements online India",
+  ],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  alternates: { canonical: "/" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: "Nutraatoz — Verified Nutraceutical Marketplace",
+    description: SITE_DESC,
+    images: [{ url: "/nutraatoz-logo.png", alt: "Nutraatoz" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nutraatoz — Verified Nutraceutical Marketplace",
+    description: SITE_DESC,
+    images: ["/nutraatoz-logo.png"],
+  },
+  icons: { icon: "/icon.png" },
+  category: "shopping",
+};
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: SITE_NAME,
+  url: SITE_URL,
+  logo: `${SITE_URL}/nutraatoz-logo.png`,
+  email: "nutraatoz@gmail.com",
+  sameAs: [
+    "https://www.instagram.com/nutraatoz/",
+    "https://www.facebook.com/nutraatoz",
+  ],
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/search?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +103,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <MarketingScripts />
         <CartProvider>{children}</CartProvider>
       </body>

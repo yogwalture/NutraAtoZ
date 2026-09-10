@@ -28,6 +28,7 @@ export async function generateMetadata({
   return {
     title: `${goal.label} Supplements — Nutraatoz`,
     description: `${goal.blurb} Verified nutraceuticals for ${goal.label.toLowerCase()} from FSSAI-verified vendors.`,
+    alternates: { canonical: `/goals/${params.slug}` },
   };
 }
 

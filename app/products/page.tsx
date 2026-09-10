@@ -7,6 +7,9 @@ import { getStoreProducts } from "@/lib/publicData";
 
 export const metadata: Metadata = {
   title: "Shop Supplements — Nutraatoz",
+  description:
+    "Browse FSSAI-verified nutraceuticals and supplements on Nutraatoz — with documented ingredients and Certificate of Analysis on request.",
+  alternates: { canonical: "/products" },
 };
 
 export const revalidate = 30;

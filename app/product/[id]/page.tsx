@@ -37,11 +37,21 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const p = await getStoreProductById(params.id);
   if (!p) return { title: "Product — Nutraatoz" };
+  const desc =
+    p.description ??
+    `${p.title} by ${p.brand}, available on Nutraatoz — FSSAI-verified vendor.`;
+  const canonical = `/product/${params.id}`;
   return {
     title: `${p.title} — ${p.brand} | Nutraatoz`,
-    description:
-      p.description ??
-      `${p.title} by ${p.brand}, available on Nutraatoz — FSSAI-verified vendor.`,
+    description: desc,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      url: canonical,
+      title: `${p.title} — ${p.brand}`,
+      description: desc,
+      images: [{ url: "/nutraatoz-logo.png", alt: p.title }],
+    },
   };
 }
 
@@ -75,8 +85,55 @@ export default async function ProductDetailPage({
   const coa = coaLabel(p.coaStatus);
   const inStock = p.stock === null || p.stock > 0;
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.title,
+    description:
+      p.description ?? `${p.title} by ${p.brand} on Nutraatoz.`,
+    brand: { "@type": "Brand", name: p.brand },
+    ...(p.ingredients ? { ingredients: p.ingredients } : {}),
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "INR",
+      price: p.price,
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      url: `https://nutraatoz.com/product/${p.id}`,
+      seller: { "@type": "Organization", name: p.brand },
+    },
+    ...(summary.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: summary.average,
+            reviewCount: summary.count,
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://nutraatoz.com/" },
+      { "@type": "ListItem", position: 2, name: "Shop", item: "https://nutraatoz.com/products" },
+      { "@type": "ListItem", position: 3, name: p.title, item: `https://nutraatoz.com/product/${p.id}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-cream">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <TrackEvent event="product_view" payload={{ productId: p.id }} />
       <SiteNav />
       <main className="pb-24 md:pb-0">
