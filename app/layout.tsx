@@ -58,6 +58,9 @@ export const metadata: Metadata = {
   },
   icons: { icon: "/icon.png" },
   category: "shopping",
+  verification: {
+    google: "oJk-CwHguQL17zRyDjEWmuKkOq_AvQ6nLf5Wk55sDbA",
+  },
 };
 
 const orgJsonLd = {
