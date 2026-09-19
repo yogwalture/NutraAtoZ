@@ -62,7 +62,7 @@ export default function Footer() {
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             {[
-              ["Shop", ["Shop by Goal", "Wellness Finder", "Shop All", "Categories"]],
+              ["Shop", ["Wellness Scan", "Shop by Goal", "Wellness Finder", "Shop All", "Categories"]],
               ["Company", ["About", "Sell on Nutraatoz", "Vendor Login", "Careers", "Contact"]],
               ["Support", ["FAQ", "Shipping", "Returns", "Lab Reports"]],
             ].map(([title, links]) => (
