@@ -13,6 +13,8 @@ const ALLOWED = new Set([
   "begin_checkout",
   "finder_complete",
   "goal_view",
+  "wellness_scan_start",
+  "wellness_scan_complete",
 ]);
 
 const UUID_RE =

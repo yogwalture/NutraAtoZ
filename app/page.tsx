@@ -1,6 +1,7 @@
 import SiteNav from "@/components/SiteNav";
 import Hero from "@/components/Hero";
 import MarqueeBar from "@/components/MarqueeBar";
+import WellnessScanBand from "@/components/WellnessScanBand";
 import CategoriesSection from "@/components/CategoriesSection";
 import SupplementsSection from "@/components/SupplementsSection";
 import CtaBand from "@/components/CtaBand";
@@ -20,6 +21,7 @@ export default async function HomePage() {
       <main className="pb-24 md:pb-0">
         <Hero />
         <MarqueeBar />
+        <WellnessScanBand />
         <CategoriesSection />
         <SupplementsSection products={products} />
         <CtaBand />

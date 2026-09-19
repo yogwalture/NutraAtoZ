@@ -48,17 +48,18 @@ export default function Hero() {
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
-                href="/products"
+                href="/wellness-scan"
                 className="shine inline-flex items-center gap-2 rounded-full bg-citrus-gradient px-8 py-4 text-sm font-bold text-white shadow-glow-coral transition-all hover:-translate-y-0.5 hover:shadow-glow-berry"
+              >
+                <Sparkles className="h-4 w-4" />
+                Take the Wellness Scan
+              </a>
+              <a
+                href="/products"
+                className="inline-flex items-center gap-2 rounded-full border border-coral/25 bg-white/70 px-8 py-4 text-sm font-bold text-coral-700 shadow-float backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white"
               >
                 Explore Products
                 <ArrowRight className="h-4 w-4" />
-              </a>
-              <a
-                href="/goals"
-                className="inline-flex items-center gap-2 rounded-full border border-coral/25 bg-white/70 px-8 py-4 text-sm font-bold text-coral-700 shadow-float backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white"
-              >
-                Find Products by Goal
               </a>
               <a
                 href="/sell-on-nutraatoz"

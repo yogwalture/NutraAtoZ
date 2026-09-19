@@ -15,6 +15,7 @@ const SOCIALS = [
 ];
 
 const FOOTER_LINKS: Record<string, string> = {
+  "Wellness Scan": "/wellness-scan",
   "Shop by Goal": "/goals",
   "Wellness Finder": "/finder",
   "Shop All": "/products",
