@@ -379,6 +379,85 @@ export async function getAnalyticsSummary(
   };
 }
 
+/* ------------------------------------------------------------------ *
+ * Wellness Scan insights (from saved scans)
+ * ------------------------------------------------------------------ */
+
+export interface WellnessInsights {
+  days: number;
+  scans: number;
+  topNutrients: { name: string; count: number }[];
+  topGoals: { slug: string; count: number }[];
+  bmiBreakdown: { category: string; count: number }[];
+}
+
+export async function getWellnessInsights(days = 30): Promise<WellnessInsights> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: rows } = await supabaseAdmin
+    .from("wellness_scans")
+    .select("bmi, recommended_nutrients, recommended_goals, created_at")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(20000);
+
+  const scans = rows ?? [];
+  const nutrientCounts = new Map<string, number>();
+  const goalCounts = new Map<string, number>();
+  const bmiBuckets: Record<string, number> = {
+    Underweight: 0,
+    Healthy: 0,
+    Overweight: 0,
+    "Higher range": 0,
+  };
+
+  for (const s of scans) {
+    const bmi = Number(s.bmi);
+    if (Number.isFinite(bmi)) {
+      const cat =
+        bmi < 18.5
+          ? "Underweight"
+          : bmi < 25
+          ? "Healthy"
+          : bmi < 30
+          ? "Overweight"
+          : "Higher range";
+      bmiBuckets[cat] += 1;
+    }
+
+    const nutrients = Array.isArray(s.recommended_nutrients)
+      ? (s.recommended_nutrients as { name?: string }[])
+      : [];
+    for (const n of nutrients) {
+      const name = typeof n?.name === "string" ? n.name : null;
+      if (name) nutrientCounts.set(name, (nutrientCounts.get(name) ?? 0) + 1);
+    }
+
+    const goals = Array.isArray(s.recommended_goals)
+      ? (s.recommended_goals as string[])
+      : [];
+    for (const g of goals) {
+      if (typeof g === "string") goalCounts.set(g, (goalCounts.get(g) ?? 0) + 1);
+    }
+  }
+
+  const topNutrients = Array.from(nutrientCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([name, count]) => ({ name, count }));
+
+  const topGoals = Array.from(goalCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([slug, count]) => ({ slug, count }));
+
+  const bmiBreakdown = Object.entries(bmiBuckets)
+    .filter(([, count]) => count > 0)
+    .map(([category, count]) => ({ category, count }));
+
+  return { days, scans: scans.length, topNutrients, topGoals, bmiBreakdown };
+}
+
 export interface AdminOrderItem {
   id: string;
   order_id: string;

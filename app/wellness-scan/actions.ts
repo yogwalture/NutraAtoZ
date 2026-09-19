@@ -193,5 +193,22 @@ export async function runWellnessScan(
     // ignore persistence failure
   }
 
+  // Authoritative server-side completion event for admin analytics.
+  // (The client fires wellness_scan_start; completion is recorded here so it
+  // can't be blocked and is always paired with a real saved scan.)
+  try {
+    await supabaseAdmin.from("analytics_events").insert({
+      event: "wellness_scan_complete",
+      path: "/wellness-scan",
+      meta: {
+        bmi_category: report.body.bmiCategory,
+        nutrients: report.nutrients.length,
+        products: products.length,
+      },
+    });
+  } catch {
+    // analytics is best-effort
+  }
+
   return { ok: true, report, products, scanId };
 }

@@ -201,7 +201,9 @@ export default function SiteNav() {
       {/* ============ MOBILE BOTTOM BAR (below md) ============ */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/60 bg-white/80 shadow-bar backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)]">
-          {navLinks.map((link) => {
+          {navLinks
+            .filter((l) => l.href !== "/wellness-scan")
+            .map((link) => {
             const Icon = link.icon;
             const isActive = active === link.href;
             return (

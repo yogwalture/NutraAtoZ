@@ -151,9 +151,6 @@ export default function WellnessScan() {
   async function submitScan() {
     setError(undefined);
     setPhase("loading");
-    track("wellness_scan_complete", {
-      meta: { answered: answeredCount, focus: focus.length },
-    });
     try {
       const res = await runWellnessScan(detailsObject(), { responses, focus });
       if (res.needAuth) {

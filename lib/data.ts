@@ -4,6 +4,7 @@ import {
   FlaskConical,
   ShoppingBag,
   User,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,6 +17,7 @@ export interface NavLink {
 
 export const navLinks: NavLink[] = [
   { label: "Home", href: "/", icon: Home },
+  { label: "Wellness Scan", href: "/wellness-scan", icon: Sparkles },
   { label: "Goals", href: "/goals", icon: Target },
   { label: "Shop", href: "/products", icon: FlaskConical },
   { label: "Cart", href: "/cart", icon: ShoppingBag },
