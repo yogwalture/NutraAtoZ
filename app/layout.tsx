@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartProvider";
 import MarketingScripts from "@/components/analytics/MarketingScripts";
+import PWA from "@/components/PWA";
 
 const SITE_URL = "https://nutraatoz.com";
 const SITE_NAME = "Nutraatoz";
@@ -56,11 +57,26 @@ export const metadata: Metadata = {
     description: SITE_DESC,
     images: ["/og.png"],
   },
-  icons: { icon: "/icon.png" },
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: "default",
+  },
   category: "shopping",
   verification: {
     google: "oJk-CwHguQL17zRyDjEWmuKkOq_AvQ6nLf5Wk55sDbA",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#FF6B4A",
 };
 
 const orgJsonLd = {
@@ -118,6 +134,7 @@ export default function RootLayout({
         />
         <MarketingScripts />
         <CartProvider>{children}</CartProvider>
+        <PWA />
       </body>
     </html>
   );
