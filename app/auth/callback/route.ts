@@ -7,13 +7,21 @@ export const dynamic = "force-dynamic";
  * OAuth / PKCE email-confirmation landing.
  *
  * Supabase redirects here with `?code=...` after the user clicks the
- * confirmation link (when the email uses the default `{{ .ConfirmationURL }}`
- * / PKCE flow). We exchange the code for a session (sets the auth cookies)
- * and then forward the user to `next` (defaults to /account).
+ * confirmation link. We exchange the code for a session (sets the auth
+ * cookies) and then forward the user to `next` (defaults to /account).
  *
- * Any Supabase-reported error, a missing code, or a failed exchange sends the
- * user to /login with a readable message instead of a blank page.
+ * IMPORTANT: behind the Coolify/Traefik reverse proxy the request's own
+ * origin is the container-internal `localhost:3000`, so we must build the
+ * public base URL from the forwarded headers — otherwise redirects point at
+ * localhost and the user hits a dead page.
  */
+function getBaseUrl(request: NextRequest, fallbackOrigin: string): string {
+  const host =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") ?? "https";
+  return host ? `${proto}://${host}` : fallbackOrigin;
+}
+
 function safeNext(next: string | null): string {
   // Only allow same-site relative paths to avoid open redirects.
   if (next && next.startsWith("/") && !next.startsWith("//")) return next;
@@ -22,6 +30,7 @@ function safeNext(next: string | null): string {
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
+  const base = getBaseUrl(request, origin);
   const code = searchParams.get("code");
   const next = safeNext(searchParams.get("next"));
   const authError =
@@ -29,7 +38,7 @@ export async function GET(request: NextRequest) {
 
   if (authError) {
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(authError)}`
+      `${base}/login?error=${encodeURIComponent(authError)}`
     );
   }
 
@@ -43,13 +52,13 @@ export async function GET(request: NextRequest) {
     const supabase = createSupabaseServerClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${base}${next}`);
     }
-    return NextResponse.redirect(`${origin}/login?verified=1`);
+    return NextResponse.redirect(`${base}/login?verified=1`);
   }
 
   return NextResponse.redirect(
-    `${origin}/login?error=${encodeURIComponent(
+    `${base}/login?error=${encodeURIComponent(
       "This confirmation link is missing its code. Please sign in, or request a new link."
     )}`
   );

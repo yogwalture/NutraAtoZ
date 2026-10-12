@@ -11,11 +11,12 @@ export const dynamic = "force-dynamic";
  * stored in the signing-up browser, so the link works even when the user
  * opens their email on a different device.
  *
- * The "Confirm signup" email template points here:
- *   {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type={{ .Type }}&next=/account
- *
  * On success we forward to `next` (defaults to /account); on any failure we
  * send the user to /login with a readable message instead of a blank page.
+ *
+ * IMPORTANT: behind the Coolify/Traefik reverse proxy the request's own
+ * origin is the container-internal `localhost:3000`, so we build the public
+ * base URL from the forwarded headers.
  */
 type EmailOtpType =
   | "signup"
@@ -34,6 +35,13 @@ const ALLOWED_TYPES: readonly EmailOtpType[] = [
   "email",
 ];
 
+function getBaseUrl(request: NextRequest, fallbackOrigin: string): string {
+  const host =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") ?? "https";
+  return host ? `${proto}://${host}` : fallbackOrigin;
+}
+
 function safeNext(next: string | null): string {
   if (next && next.startsWith("/") && !next.startsWith("//")) return next;
   return "/account";
@@ -41,6 +49,7 @@ function safeNext(next: string | null): string {
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
+  const base = getBaseUrl(request, origin);
   const tokenHash = searchParams.get("token_hash");
   const typeParam = searchParams.get("type");
   const next = safeNext(searchParams.get("next"));
@@ -57,15 +66,15 @@ export async function GET(request: NextRequest) {
       token_hash: tokenHash,
     });
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${base}${next}`);
     }
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(error.message)}`
+      `${base}/login?error=${encodeURIComponent(error.message)}`
     );
   }
 
   return NextResponse.redirect(
-    `${origin}/login?error=${encodeURIComponent(
+    `${base}/login?error=${encodeURIComponent(
       "This confirmation link is invalid or has expired. Please sign in, or request a new link."
     )}`
   );
