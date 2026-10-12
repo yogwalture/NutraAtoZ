@@ -42,6 +42,9 @@ export default function VendorLoginPage() {
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/vendor/dashboard`,
+      },
     });
     if (err) {
       setError(err.message);

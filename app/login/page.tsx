@@ -18,6 +18,17 @@ export default function LoginPage() {
   const [error, setError] = React.useState<string>();
   const [notice, setNotice] = React.useState<string>();
 
+  // Surface messages passed back by the email-confirmation routes
+  // (/auth/callback and /auth/confirm) via query params, so a failed or
+  // successful verification shows feedback here instead of landing silently.
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    const verified = params.get("verified");
+    if (err) setError(err);
+    if (verified) setNotice("Email confirmed! Please sign in to continue.");
+  }, []);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(undefined);
@@ -44,7 +55,10 @@ export default function LoginPage() {
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim() } },
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
+      },
     });
     if (err) {
       setError(err.message);

@@ -704,7 +704,10 @@ function AccountGate({ onAuthed, error }: { onAuthed: () => void; error?: string
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim() } },
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
+      },
     });
     if (err) {
       setLocalError(err.message);
