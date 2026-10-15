@@ -1,22 +1,41 @@
+import nodemailer from "nodemailer";
+
 /**
- * Transactional email via Resend's HTTP API (no SDK dependency — just fetch).
+ * Transactional email with two interchangeable backends:
  *
- * Enabled only when RESEND_API_KEY is set. When it is not, callers fall back
- * to Supabase's built-in email, so nothing breaks before a provider is wired.
+ *  1. SMTP (preferred) — e.g. Gmail SMTP, so mail is sent FROM your own
+ *     address (nutraatoz@gmail.com). Set:
+ *       SMTP_HOST   (default smtp.gmail.com)
+ *       SMTP_PORT   (default 465)
+ *       SMTP_USER   e.g. nutraatoz@gmail.com
+ *       SMTP_PASS   a Gmail "App Password" (16 chars, 2FA required)
+ *       EMAIL_FROM  e.g. "Nutraatoz <nutraatoz@gmail.com>"
  *
- * Env:
- *   RESEND_API_KEY   server-only API key from resend.com
- *   EMAIL_FROM       e.g. "Nutraatoz <no-reply@nutraatoz.com>"
- *                    (defaults to Resend's shared test sender)
+ *  2. Resend HTTP API — set RESEND_API_KEY (+ EMAIL_FROM on a verified domain).
+ *
+ * If neither is configured the admin still gets a copyable link; nothing
+ * breaks.
  */
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
-export function isMailerConfigured(): boolean {
+function smtpConfigured(): boolean {
+  return (
+    !!(process.env.SMTP_USER || process.env.SMTP_HOST) && !!process.env.SMTP_PASS
+  );
+}
+
+function resendConfigured(): boolean {
   return !!process.env.RESEND_API_KEY;
 }
 
+export function isMailerConfigured(): boolean {
+  return smtpConfigured() || resendConfigured();
+}
+
 function fromAddress(): string {
-  return process.env.EMAIL_FROM || "Nutraatoz <onboarding@resend.dev>";
+  if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
+  if (process.env.SMTP_USER) return `Nutraatoz <${process.env.SMTP_USER}>`;
+  return "Nutraatoz <onboarding@resend.dev>";
 }
 
 interface SendResult {
@@ -24,14 +43,43 @@ interface SendResult {
   error?: string;
 }
 
-async function sendEmail(params: {
+async function sendViaSmtp(params: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<SendResult> {
+  try {
+    const host = process.env.SMTP_HOST || "smtp.gmail.com";
+    const port = Number(process.env.SMTP_PORT || 465);
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465, // true for 465 (SSL), false for 587 (STARTTLS)
+      auth: user && pass ? { user, pass } : undefined,
+    });
+
+    await transporter.sendMail({
+      from: fromAddress(),
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+    });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "SMTP send failed" };
+  }
+}
+
+async function sendViaResend(params: {
   to: string;
   subject: string;
   html: string;
 }): Promise<SendResult> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { ok: false, error: "RESEND_API_KEY not configured" };
-
   try {
     const res = await fetch(RESEND_ENDPOINT, {
       method: "POST",
@@ -54,6 +102,16 @@ async function sendEmail(params: {
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "send failed" };
   }
+}
+
+async function sendEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<SendResult> {
+  if (smtpConfigured()) return sendViaSmtp(params);
+  if (resendConfigured()) return sendViaResend(params);
+  return { ok: false, error: "No email backend configured" };
 }
 
 /** Branded "set your password" email sent to a vendor on approval. */

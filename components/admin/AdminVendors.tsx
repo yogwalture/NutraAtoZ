@@ -34,6 +34,7 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
   const [linkModal, setLinkModal] = React.useState<{
     link: string;
     email?: string;
+    note?: string;
   } | null>(null);
 
   function approve(id: string, approved: boolean) {
@@ -46,7 +47,11 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
         return;
       }
       if (res.activationLink) {
-        setLinkModal({ link: res.activationLink, email: res.vendorEmail });
+        setLinkModal({
+          link: res.activationLink,
+          email: res.vendorEmail,
+          note: res.message,
+        });
       } else if (res.message) {
         alert(res.message);
       }
@@ -62,7 +67,11 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
         alert(res.error || "Could not generate an activation link.");
         return;
       }
-      setLinkModal({ link: res.activationLink, email: res.vendorEmail });
+      setLinkModal({
+        link: res.activationLink,
+        email: res.vendorEmail,
+        note: res.message,
+      });
     });
   }
 
@@ -223,6 +232,7 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
         <ActivationLinkModal
           link={linkModal.link}
           email={linkModal.email}
+          note={linkModal.note}
           onClose={() => setLinkModal(null)}
         />
       )}
@@ -233,10 +243,12 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
 function ActivationLinkModal({
   link,
   email,
+  note,
   onClose,
 }: {
   link: string;
   email?: string;
+  note?: string;
   onClose: () => void;
 }) {
   const [copied, setCopied] = React.useState(false);
@@ -270,13 +282,25 @@ function ActivationLinkModal({
               Vendor activation link
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Send this one-time link to{" "}
+              A one-time link for{" "}
               <span className="font-medium text-foreground">
                 {email || "the vendor"}
               </span>{" "}
-              (WhatsApp, SMS, email — any channel). They&rsquo;ll open it to set
-              their password and reach their dashboard.
+              to set their password and reach their dashboard. You can also copy
+              it below to share any other way.
             </p>
+            {note && (
+              <p
+                className={`mt-2 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${
+                  /emailed to/i.test(note)
+                    ? "bg-primary/10 text-coral-700"
+                    : "bg-accent/10 text-accent"
+                }`}
+              >
+                {/emailed to/i.test(note) && <Check className="h-3.5 w-3.5" />}
+                {note}
+              </p>
+            )}
           </div>
           <button
             onClick={onClose}

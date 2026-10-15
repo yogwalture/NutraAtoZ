@@ -426,10 +426,27 @@ export async function getVendorActivationLink(
     revalidatePath("/admin/vendors");
   }
 
+  // Email the activation link to the vendor's registered address.
+  const email = vendor.contact_email ?? undefined;
+  let message: string | undefined;
+  if (res.link && email && isMailerConfigured()) {
+    const sent = await sendVendorInviteEmail({
+      to: email,
+      vendorName: vendor.store_name || vendor.company_name || "Vendor",
+      actionLink: res.link,
+    });
+    message = sent.ok
+      ? `Activation link emailed to ${email}.`
+      : `Couldn't email the link (${sent.error}). Copy it below and send it manually.`;
+  } else if (res.link && email) {
+    message = `Email isn't configured yet, so copy the link below and send it to ${email}.`;
+  }
+
   return {
     ok: true,
     activationLink: res.link,
-    vendorEmail: vendor.contact_email ?? undefined,
+    vendorEmail: email,
+    message,
   };
 }
 
