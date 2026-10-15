@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getAdminContext } from "@/lib/adminData";
 import { parseProduct } from "@/lib/productForm";
+import { isMailerConfigured, sendVendorInviteEmail } from "@/lib/email";
 
 export interface ActionResult {
   ok: boolean;
@@ -296,11 +297,60 @@ async function provisionVendorAccount(vendor: {
 
   const fullName = vendor.store_name || vendor.company_name || "Vendor";
   const redirectTo = `${SITE_URL}/vendor/activate`;
+  const metadata = { role: "vendor", vendor_id: vendor.id, full_name: fullName };
 
+  // Path A — custom branded email via our own mailer (Resend), when configured.
+  // We generate the activation link ourselves (no Supabase email) and send it.
+  if (isMailerConfigured()) {
+    let userId: string | undefined;
+    let actionLink: string | undefined;
+
+    const invite = await supabaseAdmin.auth.admin.generateLink({
+      type: "invite",
+      email,
+      options: { data: metadata, redirectTo },
+    });
+
+    if (!invite.error && invite.data?.user) {
+      userId = invite.data.user.id;
+      actionLink = invite.data.properties?.action_link;
+    } else {
+      // Account already exists → send a set-password (recovery) link instead.
+      const recovery = await supabaseAdmin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo },
+      });
+      if (!recovery.error) {
+        actionLink = recovery.data.properties?.action_link;
+        userId = (await findAuthUserByEmail(email))?.id;
+      }
+    }
+
+    if (userId) {
+      await supabaseAdmin
+        .from("vendors")
+        .update({ user_id: userId })
+        .eq("id", vendor.id);
+    }
+
+    if (actionLink) {
+      const sent = await sendVendorInviteEmail({
+        to: email,
+        vendorName: fullName,
+        actionLink,
+      });
+      if (sent.ok) return `Approved. A set-password email was sent to ${email}.`;
+      return `Approved and account created, but the email failed to send (${sent.error}). The vendor can use "Forgot password" on the vendor login.`;
+    }
+    return "Approved, but an activation link could not be generated. Please retry.";
+  }
+
+  // Path B — fallback: Supabase's built-in invite email (dev-grade, rate-limited).
   const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
     email,
     {
-      data: { role: "vendor", vendor_id: vendor.id, full_name: fullName },
+      data: metadata,
       redirectTo,
     }
   );
