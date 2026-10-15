@@ -12,12 +12,18 @@ import {
   Pencil,
   Trash2,
   Percent,
+  Link2,
+  Copy,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import type { AdminVendor } from "@/lib/adminData";
-import { setVendorApproval, adminDeleteVendor } from "@/app/admin/actions";
+import {
+  setVendorApproval,
+  adminDeleteVendor,
+  getVendorActivationLink,
+} from "@/app/admin/actions";
 import AddVendor from "@/components/admin/AddVendor";
 import VendorFormModal from "@/components/admin/VendorFormModal";
 
@@ -25,14 +31,38 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
   const [busyId, setBusyId] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   const [editing, setEditing] = React.useState<AdminVendor | null>(null);
+  const [linkModal, setLinkModal] = React.useState<{
+    link: string;
+    email?: string;
+  } | null>(null);
 
   function approve(id: string, approved: boolean) {
     setBusyId(id);
     startTransition(async () => {
       const res = await setVendorApproval(id, approved);
       setBusyId(null);
-      if (!res.ok && res.error) alert(res.error);
-      else if (res.message) alert(res.message);
+      if (!res.ok && res.error) {
+        alert(res.error);
+        return;
+      }
+      if (res.activationLink) {
+        setLinkModal({ link: res.activationLink, email: res.vendorEmail });
+      } else if (res.message) {
+        alert(res.message);
+      }
+    });
+  }
+
+  function copyLink(id: string) {
+    setBusyId(id);
+    startTransition(async () => {
+      const res = await getVendorActivationLink(id);
+      setBusyId(null);
+      if (!res.ok || !res.activationLink) {
+        alert(res.error || "Could not generate an activation link.");
+        return;
+      }
+      setLinkModal({ link: res.activationLink, email: res.vendorEmail });
     });
   }
 
@@ -138,6 +168,20 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
                     </a>
                   )}
                   <div className="ml-auto flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyLink(v.id)}
+                      disabled={rowBusy}
+                      title="Generate a set-password link to send to this vendor"
+                    >
+                      {rowBusy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Link2 className="h-4 w-4" />
+                      )}
+                      Activation link
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => setEditing(v)}>
                       <Pencil className="h-4 w-4" />
                       Edit
@@ -174,7 +218,104 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
       {editing && (
         <VendorFormModal vendor={editing} onClose={() => setEditing(null)} />
       )}
+
+      {linkModal && (
+        <ActivationLinkModal
+          link={linkModal.link}
+          email={linkModal.email}
+          onClose={() => setLinkModal(null)}
+        />
+      )}
     </>
+  );
+}
+
+function ActivationLinkModal({
+  link,
+  email,
+  onClose,
+}: {
+  link: string;
+  email?: string;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = React.useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      // Fallback for insecure contexts / older browsers.
+      const el = document.getElementById("activation-link") as HTMLInputElement | null;
+      el?.select();
+      document.execCommand?.("copy");
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-plum/40 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl border border-white/60 bg-card p-6 shadow-card-hover"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+              <Link2 className="h-5 w-5" />
+              Vendor activation link
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Send this one-time link to{" "}
+              <span className="font-medium text-foreground">
+                {email || "the vendor"}
+              </span>{" "}
+              (WhatsApp, SMS, email — any channel). They&rsquo;ll open it to set
+              their password and reach their dashboard.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-4 flex items-center gap-2">
+          <input
+            id="activation-link"
+            readOnly
+            value={link}
+            onFocus={(e) => e.currentTarget.select()}
+            className="flex-1 rounded-lg border border-input bg-white/70 px-3 py-2 font-mono text-xs text-foreground"
+          />
+          <Button size="sm" onClick={copy}>
+            {copied ? (
+              <>
+                <Check className="h-4 w-4" />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" />
+                Copy
+              </>
+            )}
+          </Button>
+        </div>
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          For security this link is single-use and expires. If it stops working,
+          click &ldquo;Activation link&rdquo; again to generate a fresh one.
+        </p>
+      </div>
+    </div>
   );
 }
 

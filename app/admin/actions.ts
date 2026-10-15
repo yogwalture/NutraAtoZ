@@ -10,6 +10,9 @@ export interface ActionResult {
   ok: boolean;
   error?: string;
   message?: string;
+  /** One-time vendor set-password link for the admin to share. */
+  activationLink?: string;
+  vendorEmail?: string;
 }
 
 /** Public site origin used for auth email redirect links. */
@@ -274,108 +277,69 @@ async function findAuthUserByEmail(email: string) {
   return data?.users.find((u) => (u.email ?? "").toLowerCase() === lower) ?? null;
 }
 
-/**
- * On approval, provision the vendor's login: create (invite) a Supabase auth
- * user for their registered email and email them a secure link to set their
- * own password. Links vendors.user_id to the account. Idempotent — skips if
- * the vendor is already linked.
- */
-async function provisionVendorAccount(vendor: {
+type VendorForAuth = {
   id: string;
   contact_email: string | null;
   company_name: string | null;
   store_name: string | null;
   user_id: string | null;
-}): Promise<string> {
+};
+
+/**
+ * Ensures the vendor has a Supabase auth account and returns a fresh one-time
+ * set-password link (pointing at /vendor/activate). Creates + invites the
+ * account if needed — without sending any email; if one already exists it
+ * issues a recovery link instead. Returns the account id so the caller can
+ * link vendors.user_id.
+ */
+async function ensureVendorAuthLink(vendor: VendorForAuth): Promise<{
+  link?: string;
+  userId?: string;
+  error?: string;
+}> {
   const email = (vendor.contact_email ?? "").trim();
   if (!email) {
-    return "Approved. No contact email on file, so no vendor login was created.";
+    return {
+      error: "No contact email on file — add one before creating a login.",
+    };
   }
-  if (vendor.user_id) {
-    return "Approved. This vendor already has a login.";
-  }
-
   const fullName = vendor.store_name || vendor.company_name || "Vendor";
   const redirectTo = `${SITE_URL}/vendor/activate`;
   const metadata = { role: "vendor", vendor_id: vendor.id, full_name: fullName };
 
-  // Path A — custom branded email via our own mailer (Resend), when configured.
-  // We generate the activation link ourselves (no Supabase email) and send it.
-  if (isMailerConfigured()) {
-    let userId: string | undefined;
-    let actionLink: string | undefined;
-
-    const invite = await supabaseAdmin.auth.admin.generateLink({
-      type: "invite",
+  // Already linked → issue a fresh set-password (recovery) link.
+  if (vendor.user_id) {
+    const rec = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
       email,
-      options: { data: metadata, redirectTo },
+      options: { redirectTo },
     });
-
-    if (!invite.error && invite.data?.user) {
-      userId = invite.data.user.id;
-      actionLink = invite.data.properties?.action_link;
-    } else {
-      // Account already exists → send a set-password (recovery) link instead.
-      const recovery = await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo },
-      });
-      if (!recovery.error) {
-        actionLink = recovery.data.properties?.action_link;
-        userId = (await findAuthUserByEmail(email))?.id;
-      }
-    }
-
-    if (userId) {
-      await supabaseAdmin
-        .from("vendors")
-        .update({ user_id: userId })
-        .eq("id", vendor.id);
-    }
-
-    if (actionLink) {
-      const sent = await sendVendorInviteEmail({
-        to: email,
-        vendorName: fullName,
-        actionLink,
-      });
-      if (sent.ok) return `Approved. A set-password email was sent to ${email}.`;
-      return `Approved and account created, but the email failed to send (${sent.error}). The vendor can use "Forgot password" on the vendor login.`;
-    }
-    return "Approved, but an activation link could not be generated. Please retry.";
+    if (rec.error) return { error: rec.error.message };
+    return { link: rec.data.properties?.action_link, userId: vendor.user_id };
   }
 
-  // Path B — fallback: Supabase's built-in invite email (dev-grade, rate-limited).
-  const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+  // Create + invite the account (returns a link, sends no email).
+  const invite = await supabaseAdmin.auth.admin.generateLink({
+    type: "invite",
     email,
-    {
-      data: metadata,
-      redirectTo,
-    }
-  );
-
-  if (!error && data?.user) {
-    await supabaseAdmin
-      .from("vendors")
-      .update({ user_id: data.user.id })
-      .eq("id", vendor.id);
-    return `Approved. A set-password invite was emailed to ${email}.`;
+    options: { data: metadata, redirectTo },
+  });
+  if (!invite.error && invite.data?.user) {
+    return {
+      link: invite.data.properties?.action_link,
+      userId: invite.data.user.id,
+    };
   }
 
-  // Most common failure: an account already exists for this email.
+  // An account already exists for this email → recovery link + locate the user.
+  const rec = await supabaseAdmin.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo },
+  });
+  if (rec.error) return { error: invite.error?.message || rec.error.message };
   const existing = await findAuthUserByEmail(email);
-  if (existing) {
-    await supabaseAdmin
-      .from("vendors")
-      .update({ user_id: existing.id })
-      .eq("id", vendor.id);
-    return `Approved and linked to the existing account for ${email}. They can sign in, or use "Forgot password" to set a new one.`;
-  }
-
-  return `Approved, but the invite email could not be sent (${
-    error?.message ?? "unknown error"
-  }). You can retry, or create the login manually.`;
+  return { link: rec.data.properties?.action_link, userId: existing?.id };
 }
 
 export async function setVendorApproval(
@@ -399,13 +363,74 @@ export async function setVendorApproval(
   if (error) return { ok: false, error: error.message };
 
   let message: string | undefined;
+  let activationLink: string | undefined;
+  let vendorEmail: string | undefined;
+
   if (approved && vendor) {
-    message = await provisionVendorAccount(vendor);
+    const res = await ensureVendorAuthLink(vendor);
+    if (res.error) {
+      message = `Approved, but couldn't create a vendor login: ${res.error}`;
+    } else {
+      if (res.userId && !vendor.user_id) {
+        await supabaseAdmin
+          .from("vendors")
+          .update({ user_id: res.userId })
+          .eq("id", id);
+      }
+      activationLink = res.link;
+      vendorEmail = vendor.contact_email ?? undefined;
+      // Also email it (branded) when a mailer is configured — optional.
+      if (res.link && vendorEmail && isMailerConfigured()) {
+        await sendVendorInviteEmail({
+          to: vendorEmail,
+          vendorName: vendor.store_name || vendor.company_name || "Vendor",
+          actionLink: res.link,
+        });
+      }
+      message =
+        "Vendor approved. Copy the activation link below and send it to the vendor so they can set their password.";
+    }
   }
 
   revalidatePath("/admin/vendors");
   revalidatePath("/admin");
-  return { ok: true, message };
+  return { ok: true, message, activationLink, vendorEmail };
+}
+
+/**
+ * Generates a fresh one-time activation (set-password) link for a vendor so the
+ * admin can re-share it at any time — no email required. Also provisions /
+ * links the vendor's auth account if it doesn't exist yet.
+ */
+export async function getVendorActivationLink(
+  id: string
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const { data: vendor } = await supabaseAdmin
+    .from("vendors")
+    .select("id, contact_email, company_name, store_name, user_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!vendor) return { ok: false, error: "Vendor not found." };
+
+  const res = await ensureVendorAuthLink(vendor);
+  if (res.error) return { ok: false, error: res.error };
+
+  if (res.userId && !vendor.user_id) {
+    await supabaseAdmin
+      .from("vendors")
+      .update({ user_id: res.userId })
+      .eq("id", id);
+    revalidatePath("/admin/vendors");
+  }
+
+  return {
+    ok: true,
+    activationLink: res.link,
+    vendorEmail: vendor.contact_email ?? undefined,
+  };
 }
 
 export async function setProductActive(
