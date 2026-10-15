@@ -29,8 +29,10 @@ export default function AdminVendors({ vendors }: { vendors: AdminVendor[] }) {
   function approve(id: string, approved: boolean) {
     setBusyId(id);
     startTransition(async () => {
-      await setVendorApproval(id, approved);
+      const res = await setVendorApproval(id, approved);
       setBusyId(null);
+      if (!res.ok && res.error) alert(res.error);
+      else if (res.message) alert(res.message);
     });
   }
 

@@ -8,7 +8,11 @@ import { parseProduct } from "@/lib/productForm";
 export interface ActionResult {
   ok: boolean;
   error?: string;
+  message?: string;
 }
+
+/** Public site origin used for auth email redirect links. */
+const SITE_URL = "https://nutraatoz.com";
 
 async function requireAdmin(): Promise<ActionResult | null> {
   const ctx = await getAdminContext();
@@ -255,6 +259,75 @@ export async function applyVendorCommissionToProducts(
   return { ok: true };
 }
 
+/**
+ * Finds an existing auth user by email (service role). Supabase has no direct
+ * get-by-email admin call, so we scan the first page of users (fine for the
+ * current scale).
+ */
+async function findAuthUserByEmail(email: string) {
+  const { data } = await supabaseAdmin.auth.admin.listUsers({
+    page: 1,
+    perPage: 1000,
+  });
+  const lower = email.toLowerCase();
+  return data?.users.find((u) => (u.email ?? "").toLowerCase() === lower) ?? null;
+}
+
+/**
+ * On approval, provision the vendor's login: create (invite) a Supabase auth
+ * user for their registered email and email them a secure link to set their
+ * own password. Links vendors.user_id to the account. Idempotent — skips if
+ * the vendor is already linked.
+ */
+async function provisionVendorAccount(vendor: {
+  id: string;
+  contact_email: string | null;
+  company_name: string | null;
+  store_name: string | null;
+  user_id: string | null;
+}): Promise<string> {
+  const email = (vendor.contact_email ?? "").trim();
+  if (!email) {
+    return "Approved. No contact email on file, so no vendor login was created.";
+  }
+  if (vendor.user_id) {
+    return "Approved. This vendor already has a login.";
+  }
+
+  const fullName = vendor.store_name || vendor.company_name || "Vendor";
+  const redirectTo = `${SITE_URL}/vendor/activate`;
+
+  const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    email,
+    {
+      data: { role: "vendor", vendor_id: vendor.id, full_name: fullName },
+      redirectTo,
+    }
+  );
+
+  if (!error && data?.user) {
+    await supabaseAdmin
+      .from("vendors")
+      .update({ user_id: data.user.id })
+      .eq("id", vendor.id);
+    return `Approved. A set-password invite was emailed to ${email}.`;
+  }
+
+  // Most common failure: an account already exists for this email.
+  const existing = await findAuthUserByEmail(email);
+  if (existing) {
+    await supabaseAdmin
+      .from("vendors")
+      .update({ user_id: existing.id })
+      .eq("id", vendor.id);
+    return `Approved and linked to the existing account for ${email}. They can sign in, or use "Forgot password" to set a new one.`;
+  }
+
+  return `Approved, but the invite email could not be sent (${
+    error?.message ?? "unknown error"
+  }). You can retry, or create the login manually.`;
+}
+
 export async function setVendorApproval(
   id: string,
   approved: boolean
@@ -262,15 +335,27 @@ export async function setVendorApproval(
   const guard = await requireAdmin();
   if (guard) return guard;
 
+  // Read current state so we can provision a login on the approve transition.
+  const { data: vendor } = await supabaseAdmin
+    .from("vendors")
+    .select("id, contact_email, company_name, store_name, user_id, is_approved")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabaseAdmin
     .from("vendors")
     .update({ is_approved: approved })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
 
+  let message: string | undefined;
+  if (approved && vendor) {
+    message = await provisionVendorAccount(vendor);
+  }
+
   revalidatePath("/admin/vendors");
   revalidatePath("/admin");
-  return { ok: true };
+  return { ok: true, message };
 }
 
 export async function setProductActive(
