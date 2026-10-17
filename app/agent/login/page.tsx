@@ -1,0 +1,104 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Headphones, Loader2, AlertCircle, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createSupabaseBrowserClient } from "@/lib/supabaseBrowserClient";
+
+export default function AgentLoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string>();
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(undefined);
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+      return;
+    }
+    router.push("/agent");
+    router.refresh();
+  }
+
+  return (
+    <div className="relative grid min-h-screen place-items-center overflow-hidden bg-gradient-to-br from-cream via-[hsl(28_100%_96%)] to-[hsl(340_65%_96%)] px-5">
+      <div className="orb orb-coral left-[-6rem] top-[-4rem] h-72 w-72 animate-float-slow" />
+      <div className="orb orb-amber bottom-[-4rem] right-[-4rem] h-64 w-64 animate-float" />
+      <div className="absolute inset-0 bg-grain" />
+
+      <div className="relative z-10 w-full max-w-sm animate-fade-up rounded-[2rem] border border-white/60 bg-white/70 p-8 shadow-float backdrop-blur-xl">
+        <div className="flex flex-col items-center text-center">
+          <img src="/nutraatoz-wordmark.png" alt="Nutraatoz" className="h-9 w-auto" />
+          <h1 className="mt-4 flex items-center gap-2 font-serif text-2xl font-semibold text-primary">
+            <Headphones className="h-5 w-5 text-coral-600" />
+            Agent Portal
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Vendor acquisition &amp; telecalling
+          </p>
+        </div>
+
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@nutraatoz.com"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+
+          {error && (
+            <p className="flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Signing in…
+              </>
+            ) : (
+              <>
+                <LogIn className="h-4 w-4" />
+                Sign in
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}

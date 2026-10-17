@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getAdminContext } from "@/lib/adminData";
 import { parseProduct } from "@/lib/productForm";
-import { isMailerConfigured, sendVendorInviteEmail } from "@/lib/email";
+import {
+  isMailerConfigured,
+  sendVendorInviteEmail,
+  sendActionLinkEmail,
+} from "@/lib/email";
 
 export interface ActionResult {
   ok: boolean;
@@ -546,6 +550,166 @@ export async function adminDeleteLead(id: string): Promise<ActionResult> {
 
   const { error } = await supabaseAdmin.from("vendor_leads").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/leads");
+  return { ok: true };
+}
+
+/** Assign (or unassign) a lead to a telecalling agent. */
+export async function assignLeadToAgent(
+  leadId: string,
+  agentId: string | null
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const { error } = await supabaseAdmin
+    .from("vendor_leads")
+    .update({
+      assigned_agent_id: agentId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", leadId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin/leads");
+  revalidatePath("/admin/agents");
+  revalidatePath("/agent");
+  return { ok: true };
+}
+
+/* ------------------------------------------------------------------ *
+ * Agent accounts (telecalling / vendor-acquisition team)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Ensures an agent has a Supabase auth account + a profiles row with role
+ * 'agent', and returns a fresh one-time set-password link (→ /agent/activate).
+ * Mirrors ensureVendorAuthLink but for the agent portal.
+ */
+async function ensureAgentAuthLink(
+  email: string,
+  fullName: string
+): Promise<{ link?: string; userId?: string; error?: string }> {
+  const trimmed = email.trim();
+  if (!trimmed) return { error: "An email address is required." };
+
+  const redirectTo = `${SITE_URL}/agent/activate`;
+  const metadata = { role: "agent", full_name: fullName };
+
+  const invite = await supabaseAdmin.auth.admin.generateLink({
+    type: "invite",
+    email: trimmed,
+    options: { data: metadata, redirectTo },
+  });
+  if (!invite.error && invite.data?.user) {
+    return { link: invite.data.properties?.action_link, userId: invite.data.user.id };
+  }
+
+  // Account already exists → recovery link + locate the user.
+  const rec = await supabaseAdmin.auth.admin.generateLink({
+    type: "recovery",
+    email: trimmed,
+    options: { redirectTo },
+  });
+  if (rec.error) return { error: invite.error?.message || rec.error.message };
+  const existing = await findAuthUserByEmail(trimmed);
+  return { link: rec.data.properties?.action_link, userId: existing?.id };
+}
+
+/** Admin creates a telecalling agent and emails them an activation link. */
+export async function createAgent(formData: FormData): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const email = str(formData.get("email"));
+  const full_name = str(formData.get("full_name"));
+  if (!email) return { ok: false, error: "Email is required." };
+
+  const res = await ensureAgentAuthLink(email, full_name ?? "Agent");
+  if (res.error) return { ok: false, error: res.error };
+
+  if (res.userId) {
+    const { error: profErr } = await supabaseAdmin.from("profiles").upsert(
+      {
+        id: res.userId,
+        role: "agent",
+        email,
+        full_name,
+      },
+      { onConflict: "id" }
+    );
+    if (profErr) return { ok: false, error: profErr.message };
+  }
+
+  let message: string | undefined;
+  if (res.link && isMailerConfigured()) {
+    const sent = await sendActionLinkEmail({
+      to: email,
+      subject: "Your Nutraatoz agent account — set your password",
+      heading: "Welcome to the Nutraatoz team 🎉",
+      intro: `Hi ${full_name || "there"}, your agent account is ready. Set a password to access your dashboard, call queue and assigned leads.`,
+      actionLink: res.link,
+      buttonLabel: "Set my password",
+    });
+    message = sent.ok
+      ? `Activation link emailed to ${email}.`
+      : `Agent created, but couldn't email the link (${sent.error}). Copy it below.`;
+  } else if (res.link) {
+    message = `Email isn't configured, so copy the link below and send it to ${email}.`;
+  }
+
+  revalidatePath("/admin/agents");
+  return { ok: true, activationLink: res.link, vendorEmail: email, message };
+}
+
+/** Re-issue an agent's set-password link. */
+export async function getAgentActivationLink(
+  email: string,
+  fullName?: string
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const res = await ensureAgentAuthLink(email, fullName ?? "Agent");
+  if (res.error) return { ok: false, error: res.error };
+
+  let message: string | undefined;
+  if (res.link && isMailerConfigured()) {
+    const sent = await sendActionLinkEmail({
+      to: email,
+      subject: "Your Nutraatoz agent account — set your password",
+      heading: "Set your Nutraatoz agent password",
+      intro: "Use the button below to set a new password and access your agent dashboard.",
+      actionLink: res.link,
+      buttonLabel: "Set my password",
+    });
+    message = sent.ok
+      ? `Activation link emailed to ${email}.`
+      : `Couldn't email the link (${sent.error}). Copy it below and send it manually.`;
+  } else if (res.link) {
+    message = `Email isn't configured, so copy the link below and send it to ${email}.`;
+  }
+
+  return { ok: true, activationLink: res.link, vendorEmail: email, message };
+}
+
+/** Remove an agent: unassign their leads and demote their profile. */
+export async function deleteAgent(agentId: string): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  await supabaseAdmin
+    .from("vendor_leads")
+    .update({ assigned_agent_id: null })
+    .eq("assigned_agent_id", agentId);
+
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ role: "customer" })
+    .eq("id", agentId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin/agents");
   revalidatePath("/admin/leads");
   return { ok: true };
 }

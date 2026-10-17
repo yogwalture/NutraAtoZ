@@ -169,6 +169,52 @@ export async function sendVendorInviteEmail(params: {
   });
 }
 
+/**
+ * Generic branded action email (button + fallback link). Used for agent
+ * invites and vendor registration links.
+ */
+export async function sendActionLinkEmail(params: {
+  to: string;
+  subject: string;
+  heading: string;
+  intro: string;
+  actionLink: string;
+  buttonLabel: string;
+}): Promise<SendResult> {
+  const { to, subject, heading, intro, actionLink, buttonLabel } = params;
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#FFF8F0;font-family:Arial,Helvetica,sans-serif;color:#2b1a12;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8F0;padding:32px 16px;">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.06);">
+          <tr><td style="background:linear-gradient(135deg,#FF6B4A,#E63980);padding:24px 28px;">
+            <span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">nutraAtoz</span>
+          </td></tr>
+          <tr><td style="padding:32px 28px;">
+            <h1 style="margin:0 0 12px;font-size:22px;color:#17382f;">${escapeHtml(heading)}</h1>
+            <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">${escapeHtml(intro)}</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+              <tr><td style="border-radius:999px;background:linear-gradient(135deg,#FF6B4A,#E63980);">
+                <a href="${actionLink}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;border-radius:999px;">${escapeHtml(buttonLabel)}</a>
+              </td></tr>
+            </table>
+            <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#7a6a60;">
+              If the button doesn't work, copy and paste this link into your browser:<br/>
+              <a href="${actionLink}" style="color:#FF6B4A;word-break:break-all;">${actionLink}</a>
+            </p>
+          </td></tr>
+          <tr><td style="padding:18px 28px;background:#FBF1EA;font-size:12px;color:#9a8a80;">
+            Nutraatoz — India's verified nutraceutical marketplace.
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+  return sendEmail({ to, subject, html });
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

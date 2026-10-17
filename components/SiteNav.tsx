@@ -71,7 +71,7 @@ export default function SiteNav() {
               )}
             </a>
             <a
-              href="/vendor/onboarding"
+              href="/become-a-vendor"
               className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-coral/25 px-5 py-2.5 text-sm font-bold text-coral-700 transition-colors hover:bg-coral/10"
             >
               <Store className="h-4 w-4" />
@@ -181,7 +181,7 @@ export default function SiteNav() {
 
         <div className="space-y-2 border-t border-coral/10 p-4">
           <a
-            href="/vendor/onboarding"
+            href="/become-a-vendor"
             onClick={() => setDrawerOpen(false)}
             className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-coral/25 py-3.5 text-sm font-bold text-coral-700 transition-colors hover:bg-coral/10"
           >

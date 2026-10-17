@@ -285,6 +285,12 @@ export interface VendorLead {
   source: string | null;
   stage: LeadStage;
   notes: string | null;
+  product_category: string | null;
+  message: string | null;
+  assigned_agent_id: string | null;
+  next_follow_up_at: string | null;
+  last_contacted_at: string | null;
+  converted_vendor_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -293,7 +299,7 @@ export async function getAllLeads(): Promise<VendorLead[]> {
   const { data } = await supabaseAdmin
     .from("vendor_leads")
     .select(
-      "id, company_name, contact_name, contact_email, contact_phone, city, state, source, stage, notes, created_at, updated_at"
+      "id, company_name, contact_name, contact_email, contact_phone, city, state, source, stage, notes, product_category, message, assigned_agent_id, next_follow_up_at, last_contacted_at, converted_vendor_id, created_at, updated_at"
     )
     .order("updated_at", { ascending: false });
   return (data ?? []) as VendorLead[];

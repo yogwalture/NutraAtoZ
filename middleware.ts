@@ -58,9 +58,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Agent portal
+  if (
+    pathname.startsWith("/agent") &&
+    !pathname.startsWith("/agent/login") &&
+    !pathname.startsWith("/agent/activate") &&
+    !user
+  ) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/agent/login";
+    return NextResponse.redirect(redirectUrl);
+  }
+
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/vendor/dashboard/:path*"],
+  matcher: ["/admin/:path*", "/vendor/dashboard/:path*", "/agent/:path*"],
 };

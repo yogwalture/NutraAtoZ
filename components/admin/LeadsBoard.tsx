@@ -17,11 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { VendorLead, LeadStage } from "@/lib/adminData";
+import type { AgentSummary } from "@/lib/agentData";
 import {
   adminCreateLead,
   adminUpdateLead,
   adminSetLeadStage,
   adminDeleteLead,
+  assignLeadToAgent,
 } from "@/app/admin/actions";
 
 const STAGES: { key: LeadStage; label: string; tone: string }[] = [
@@ -32,7 +34,13 @@ const STAGES: { key: LeadStage; label: string; tone: string }[] = [
   { key: "LOST", label: "Lost", tone: "bg-destructive/10 text-destructive" },
 ];
 
-export default function LeadsBoard({ leads }: { leads: VendorLead[] }) {
+export default function LeadsBoard({
+  leads,
+  agents = [],
+}: {
+  leads: VendorLead[];
+  agents?: AgentSummary[];
+}) {
   const [open, setOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<VendorLead | null>(null);
   const [error, setError] = React.useState<string>();
@@ -76,6 +84,14 @@ export default function LeadsBoard({ leads }: { leads: VendorLead[] }) {
     setBusyId(l.id);
     startTransition(async () => {
       await adminDeleteLead(l.id);
+      setBusyId(null);
+    });
+  }
+
+  function assign(l: VendorLead, agentId: string) {
+    setBusyId(l.id);
+    startTransition(async () => {
+      await assignLeadToAgent(l.id, agentId || null);
       setBusyId(null);
     });
   }
@@ -194,6 +210,21 @@ export default function LeadsBoard({ leads }: { leads: VendorLead[] }) {
                           </option>
                         ))}
                       </select>
+                      {agents.length > 0 && (
+                        <select
+                          value={l.assigned_agent_id ?? ""}
+                          onChange={(e) => assign(l, e.target.value)}
+                          disabled={busyId === l.id && pending}
+                          className="mt-1.5 w-full rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <option value="">Unassigned</option>
+                          {agents.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.full_name || a.email || "Agent"}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                   ))
               )}
