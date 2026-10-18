@@ -23,6 +23,8 @@ export interface StoreProduct {
   attributes: ProductAttribute[];
   /** Vendor/admin-assigned wellness-goal slugs. */
   goals: string[];
+  /** Primary product image (null → storefront shows a placeholder). */
+  imageUrl: string | null;
 }
 
 export type CoaStatus =
@@ -32,6 +34,8 @@ export type CoaStatus =
   | null;
 
 export interface StoreProductDetail extends StoreProduct {
+  /** Additional images: label, ingredients, nutrition / supplement facts. */
+  imageUrls: string[];
   ingredients: string | null;
   coaUrl: string | null;
   coaStatus: CoaStatus;
@@ -43,7 +47,7 @@ export interface StoreProductDetail extends StoreProduct {
 }
 
 const DETAIL_SELECT =
-  "id, title, price, weight_gms, description, ingredients, stock, discount_type, discount_value, attributes, goals, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, vendor_id, is_active";
+  "id, title, price, weight_gms, description, ingredients, stock, discount_type, discount_value, attributes, goals, image_url, image_urls, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, vendor_id, is_active";
 
 function coerceCoa(s: unknown): CoaStatus {
   return s === "VENDOR_PROVIDED" ||
@@ -93,6 +97,8 @@ export async function getStoreProductById(
     stock: p.stock,
     attributes: parseAttributes(p.attributes),
     goals: Array.isArray(p.goals) ? (p.goals as string[]) : [],
+    imageUrl: p.image_url ?? null,
+    imageUrls: Array.isArray(p.image_urls) ? (p.image_urls as string[]) : [],
     ingredients: p.ingredients ?? null,
     coaUrl: p.lab_tested_url ?? null,
     coaStatus: coerceCoa(p.coa_status),
@@ -124,7 +130,7 @@ export async function getStoreProducts(limit = 12): Promise<StoreProduct[]> {
   const { data: products } = await supabaseAdmin
     .from("products")
     .select(
-      "id, title, price, weight_gms, description, stock, discount_type, discount_value, attributes, goals, vendor_id, is_active, created_at"
+      "id, title, price, weight_gms, description, stock, discount_type, discount_value, attributes, goals, image_url, vendor_id, is_active, created_at"
     )
     .eq("is_active", true)
     .order("created_at", { ascending: false })
@@ -165,6 +171,7 @@ export async function getStoreProducts(limit = 12): Promise<StoreProduct[]> {
         stock: p.stock,
         attributes: parseAttributes(p.attributes),
         goals: Array.isArray(p.goals) ? (p.goals as string[]) : [],
+        imageUrl: p.image_url ?? null,
       };
     });
 }

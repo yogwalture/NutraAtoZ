@@ -462,6 +462,29 @@ export default function LeadWorkspace({
                     </div>
                     <Textarea name="description" placeholder="Short description" />
                     <Textarea name="ingredients" placeholder="Key ingredients" />
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">
+                        Main product image
+                      </label>
+                      <input
+                        name="image"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">
+                        Label / nutrition images
+                      </label>
+                      <input
+                        name="gallery"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                      />
+                    </div>
                     <Button type="submit" variant="outline" disabled={pending}>
                       {pending ? (
                         <>

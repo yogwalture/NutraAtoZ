@@ -55,6 +55,8 @@ export interface ProductRow {
   discount_value: number | null;
   attributes: ProductAttribute[];
   goals: string[];
+  image_url: string | null;
+  image_urls: string[];
   is_active: boolean | null;
   created_at?: string | null;
 }
@@ -151,7 +153,7 @@ export async function getVendorProducts(
   const { data } = await supabaseAdmin
     .from("products")
     .select(
-      "id, vendor_id, title, description, price, commission_pct, stock, weight_gms, ingredients, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, discount_type, discount_value, attributes, goals, is_active, created_at"
+      "id, vendor_id, title, description, price, commission_pct, stock, weight_gms, ingredients, lab_tested_url, coa_status, coa_lab, coa_batch, coa_date, discount_type, discount_value, attributes, goals, image_url, image_urls, is_active, created_at"
     )
     .eq("vendor_id", vendorId)
     .order("created_at", { ascending: false });
@@ -159,6 +161,7 @@ export async function getVendorProducts(
     ...(p as unknown as ProductRow),
     attributes: parseAttributes(p.attributes),
     goals: Array.isArray(p.goals) ? (p.goals as string[]) : [],
+    image_urls: Array.isArray(p.image_urls) ? (p.image_urls as string[]) : [],
   }));
 }
 

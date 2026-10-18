@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getVendorContext } from "@/lib/vendorData";
 import { parseProduct } from "@/lib/productForm";
+import { collectProductImages } from "@/lib/productImages";
 import type { BulkImportRow } from "@/lib/bulk";
 
 export interface ActionResult {
@@ -56,9 +57,18 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
   void ignoredCreate;
   const commission_pct = await resolveCommission(ctx.vendorId);
 
+  let images: { image_url?: string; image_urls?: string[] };
+  try {
+    images = await collectProductImages(formData, ctx.vendorId);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Image upload failed." };
+  }
+
   const { error } = await supabaseAdmin.from("products").insert({
     vendor_id: ctx.vendorId,
     ...values,
+    ...(images.image_url ? { image_url: images.image_url } : {}),
+    ...(images.image_urls ? { image_urls: images.image_urls } : {}),
     commission_pct,
     is_active: true,
   });
@@ -84,9 +94,21 @@ export async function updateProduct(
   // Never let a vendor edit commission — preserve the admin-set rate.
   const { commission_pct: _ignored, ...values } = parsed.values;
 
+  let images: { image_url?: string; image_urls?: string[] };
+  try {
+    images = await collectProductImages(formData, ctx.vendorId);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Image upload failed." };
+  }
+
   const { error } = await supabaseAdmin
     .from("products")
-    .update(values)
+    .update({
+      ...values,
+      // Only overwrite images when new ones were uploaded.
+      ...(images.image_url ? { image_url: images.image_url } : {}),
+      ...(images.image_urls ? { image_urls: images.image_urls } : {}),
+    })
     .eq("id", id)
     .eq("vendor_id", ctx.vendorId);
   if (error) return { ok: false, error: error.message };

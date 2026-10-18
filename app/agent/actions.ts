@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getAgentContext, type AgentContext, type AgentLead } from "@/lib/agentData";
 import { parseProduct } from "@/lib/productForm";
+import { collectProductImages } from "@/lib/productImages";
 import { isMailerConfigured, sendActionLinkEmail } from "@/lib/email";
 
 export interface AgentActionResult {
@@ -347,9 +348,18 @@ export async function agentAddProduct(
   const parsed = parseProduct(formData);
   if ("error" in parsed) return { ok: false, error: parsed.error };
 
+  let images: { image_url?: string; image_urls?: string[] };
+  try {
+    images = await collectProductImages(formData, vendorId);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Image upload failed." };
+  }
+
   const { error } = await supabaseAdmin.from("products").insert({
     vendor_id: vendorId,
     ...parsed.values,
+    ...(images.image_url ? { image_url: images.image_url } : {}),
+    ...(images.image_urls ? { image_urls: images.image_urls } : {}),
     is_active: true,
   });
   if (error) return { ok: false, error: error.message };

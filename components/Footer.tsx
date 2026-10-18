@@ -114,7 +114,7 @@ export default function Footer() {
           <p>© {new Date().getFullYear()} Nutraatoz. All rights reserved.</p>
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="h-4 w-4 text-coral-600" />
-            Cash on Delivery available · Online payments coming soon
+            Secure online payments &amp; Cash on Delivery available
           </span>
         </div>
       </div>

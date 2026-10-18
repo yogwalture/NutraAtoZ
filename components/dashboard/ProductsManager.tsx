@@ -14,6 +14,8 @@ import {
   FlaskConical,
   Tag,
   Copy,
+  ImagePlus,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,10 +112,27 @@ export default function ProductsManager({
   const [attrs, setAttrs] = React.useState<ProductAttribute[]>([]);
   const [goals, setGoals] = React.useState<string[]>([]);
 
+  // image previews
+  const [mainPreview, setMainPreview] = React.useState<string | null>(null);
+  const [galleryPreviews, setGalleryPreviews] = React.useState<string[]>([]);
+
   function resetForm(p: ProductRow | null) {
     setDiscountType(p?.discount_type ?? null);
     setAttrs(p?.attributes && p.attributes.length ? p.attributes : []);
     setGoals(p?.goals ?? []);
+    setMainPreview(p?.image_url ?? null);
+    setGalleryPreviews(p?.image_urls ?? []);
+  }
+
+  function onMainImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    setMainPreview(f ? URL.createObjectURL(f) : editing?.image_url ?? null);
+  }
+  function onGalleryImages(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    setGalleryPreviews(
+      files.length ? files.map((f) => URL.createObjectURL(f)) : editing?.image_urls ?? []
+    );
   }
 
   function toggleGoal(slug: string) {
@@ -318,8 +337,17 @@ export default function ProductsManager({
                         disabled={!canEdit}
                         className="h-4 w-4 shrink-0 rounded border-input accent-primary"
                       />
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/5 text-primary/50">
-                        <FlaskConical className="h-5 w-5" strokeWidth={1.5} />
+                      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/5 text-primary/50">
+                        {p.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={p.image_url}
+                            alt={p.title}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <FlaskConical className="h-5 w-5" strokeWidth={1.5} />
+                        )}
                       </span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-foreground">
@@ -433,6 +461,82 @@ export default function ProductsManager({
                   defaultValue={editing?.title ?? ""}
                   placeholder="Triple-Strength Omega-3"
                 />
+              </div>
+
+              {/* Product images */}
+              <div className="rounded-xl border border-border bg-secondary/40 p-3.5">
+                <Label className="flex items-center gap-1.5">
+                  <ImagePlus className="h-3.5 w-3.5 text-accent" />
+                  Product images
+                </Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Upload a main product photo, plus extra shots of the label,
+                  ingredients and nutrition / supplement-facts panel.
+                </p>
+
+                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {/* Primary image */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="image" className="text-xs text-muted-foreground">
+                      Main product image
+                    </Label>
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-background text-muted-foreground">
+                        {mainPreview ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={mainPreview}
+                            alt="Main preview"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <ImageIcon className="h-6 w-6" strokeWidth={1.5} />
+                        )}
+                      </span>
+                      <input
+                        id="image"
+                        name="image"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={onMainImage}
+                        className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Gallery images */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="gallery" className="text-xs text-muted-foreground">
+                      Label / ingredients / nutrition images
+                    </Label>
+                    <input
+                      id="gallery"
+                      name="gallery"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      onChange={onGalleryImages}
+                      className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                    />
+                    {galleryPreviews.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {galleryPreviews.map((src, i) => (
+                          <span
+                            key={i}
+                            className="h-12 w-12 overflow-hidden rounded-md border border-border bg-background"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={src} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  JPG, PNG or WebP · up to 5 MB each.
+                  {editing ? " Leave empty to keep the current images." : ""}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">

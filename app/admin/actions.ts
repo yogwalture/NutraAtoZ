@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getAdminContext } from "@/lib/adminData";
 import { parseProduct } from "@/lib/productForm";
+import { collectProductImages } from "@/lib/productImages";
 import {
   isMailerConfigured,
   sendVendorInviteEmail,
@@ -79,9 +80,18 @@ export async function adminCreateProduct(
   const parsed = parseProduct(formData);
   if ("error" in parsed) return { ok: false, error: parsed.error };
 
+  let images: { image_url?: string; image_urls?: string[] };
+  try {
+    images = await collectProductImages(formData, vendor_id);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Image upload failed." };
+  }
+
   const { error } = await supabaseAdmin.from("products").insert({
     vendor_id,
     ...parsed.values,
+    ...(images.image_url ? { image_url: images.image_url } : {}),
+    ...(images.image_urls ? { image_urls: images.image_urls } : {}),
     is_active: true,
   });
   if (error) return { ok: false, error: error.message };
@@ -106,6 +116,26 @@ export async function adminUpdateProduct(
   const values: Record<string, unknown> = { ...parsed.values };
   const vendor_id = str(formData.get("vendor_id"));
   if (vendor_id) values.vendor_id = vendor_id;
+
+  // Resolve a vendor id for image storage grouping (form value, else the row's).
+  let imgVendor = vendor_id;
+  if (!imgVendor) {
+    const { data: row } = await supabaseAdmin
+      .from("products")
+      .select("vendor_id")
+      .eq("id", id)
+      .maybeSingle();
+    imgVendor = (row?.vendor_id as string | undefined) ?? null;
+  }
+  if (imgVendor) {
+    try {
+      const images = await collectProductImages(formData, imgVendor);
+      if (images.image_url) values.image_url = images.image_url;
+      if (images.image_urls) values.image_urls = images.image_urls;
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "Image upload failed." };
+    }
+  }
 
   const { error } = await supabaseAdmin.from("products").update(values).eq("id", id);
   if (error) return { ok: false, error: error.message };

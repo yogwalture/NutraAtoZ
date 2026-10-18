@@ -73,9 +73,18 @@ export default async function SearchPage({
                     href={`/product/${product.id}`}
                     className="relative block aspect-[4/3] overflow-hidden bg-gradient-to-br from-coral-500/25 via-white to-berry-500/25 text-coral-600"
                   >
-                    <div className="absolute inset-0 grid place-items-center transition-transform duration-500 group-hover:scale-110">
-                      <FlaskConical className="h-16 w-16" strokeWidth={1.1} />
-                    </div>
+                    {product.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={product.imageUrl}
+                        alt={product.title}
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 grid place-items-center transition-transform duration-500 group-hover:scale-110">
+                        <FlaskConical className="h-16 w-16" strokeWidth={1.1} />
+                      </div>
+                    )}
                     <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-coral-600 shadow-float backdrop-blur">
                       <ShieldCheck className="h-3 w-3" />
                       Verified vendor

@@ -104,6 +104,34 @@ export default function AddProduct({ vendors }: { vendors: VendorOption[] }) {
                 <Input id="title" name="title" required placeholder="Triple-Strength Omega-3" />
               </div>
 
+              <div className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-secondary/40 p-3.5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="image" className="text-xs text-muted-foreground">
+                    Main product image
+                  </Label>
+                  <input
+                    id="image"
+                    name="image"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="gallery" className="text-xs text-muted-foreground">
+                    Label / nutrition images
+                  </Label>
+                  <input
+                    id="gallery"
+                    name="gallery"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="price">Rate / Price (₹)</Label>

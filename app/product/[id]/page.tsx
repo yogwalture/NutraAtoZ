@@ -14,6 +14,7 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import ProductActions from "@/components/product/ProductActions";
+import ProductGallery from "@/components/product/ProductGallery";
 import PincodeCheck from "@/components/product/PincodeCheck";
 import ReviewForm from "@/components/product/ReviewForm";
 import TrackEvent from "@/components/analytics/TrackEvent";
@@ -149,20 +150,11 @@ export default async function ProductDetailPage({
 
           {/* Top: image + buy box */}
           <div className="mt-5 grid gap-8 lg:grid-cols-2">
-            <div className="relative aspect-square overflow-hidden rounded-[2rem] border border-white/70 bg-gradient-to-br from-coral-500/25 via-white to-berry-500/25">
-              <div className="absolute inset-0 grid place-items-center text-coral-600">
-                <FlaskConical className="h-28 w-28" strokeWidth={1} />
-              </div>
-              <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-coral-600 shadow-float backdrop-blur">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Verified vendor
-              </span>
-              {p.discount && (
-                <span className="absolute left-4 top-4 rounded-full bg-citrus-gradient px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-glow-berry">
-                  {p.discount}
-                </span>
-              )}
-            </div>
+            <ProductGallery
+              images={[p.imageUrl, ...p.imageUrls].filter((s): s is string => !!s)}
+              title={p.title}
+              discount={p.discount}
+            />
 
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-berry">
@@ -447,9 +439,18 @@ export default async function ProductDetailPage({
                 {related.map((r) => (
                   <article key={r.id} className="group flex flex-col overflow-hidden rounded-3xl border border-white/70 bg-white shadow-card">
                     <a href={`/product/${r.id}`} className="relative block aspect-[4/3] overflow-hidden bg-gradient-to-br from-coral-500/25 via-white to-berry-500/25 text-coral-600">
-                      <span className="absolute inset-0 grid place-items-center transition-transform duration-500 group-hover:scale-110">
-                        <FlaskConical className="h-14 w-14" strokeWidth={1.1} />
-                      </span>
+                      {r.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={r.imageUrl}
+                          alt={r.title}
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <span className="absolute inset-0 grid place-items-center transition-transform duration-500 group-hover:scale-110">
+                          <FlaskConical className="h-14 w-14" strokeWidth={1.1} />
+                        </span>
+                      )}
                     </a>
                     <div className="flex flex-1 flex-col p-4">
                       <p className="text-[11px] font-bold uppercase tracking-wide text-berry">{r.brand}</p>
