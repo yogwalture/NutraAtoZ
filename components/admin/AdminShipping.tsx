@@ -226,7 +226,24 @@ export default function AdminShipping({ orders }: { orders: ShippingOrder[] }) {
                               {r.vendor_name}
                             </span>
                             {r.status === "created" && r.awb_code ? (
-                              <> · AWB {r.awb_code}</>
+                              <>
+                                {" "}
+                                · {r.courier_name ? `${r.courier_name} ` : ""}AWB{" "}
+                                {r.tracking_url ? (
+                                  <a
+                                    href={r.tracking_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-coral-700 hover:underline"
+                                  >
+                                    {r.awb_code}
+                                  </a>
+                                ) : (
+                                  r.awb_code
+                                )}
+                              </>
+                            ) : r.status === "created" ? (
+                              <> · booked, awaiting AWB</>
                             ) : r.status === "skipped" ? (
                               <> · {r.message || "skipped"}</>
                             ) : r.status === "error" ? (

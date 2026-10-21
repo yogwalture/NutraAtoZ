@@ -545,6 +545,8 @@ export interface ShipmentRefView {
   shiprocket_order_id?: number;
   shipment_id?: number;
   awb_code?: string | null;
+  courier_name?: string | null;
+  tracking_url?: string | null;
   status?: string;
   message?: string;
 }
@@ -626,6 +628,8 @@ export async function getShippingOrders(limit = 200): Promise<ShippingOrder[]> {
       shiprocket_order_id: typeof r.shiprocket_order_id === "number" ? r.shiprocket_order_id : undefined,
       shipment_id: typeof r.shipment_id === "number" ? r.shipment_id : undefined,
       awb_code: (r.awb_code as string | null) ?? null,
+      courier_name: (r.courier_name as string | null) ?? null,
+      tracking_url: (r.tracking_url as string | null) ?? null,
       status: r.status ? String(r.status) : undefined,
       message: r.message ? String(r.message) : undefined,
     }));

@@ -79,6 +79,52 @@ async function api<T>(path: string, body: unknown): Promise<T> {
   return data as unknown as T;
 }
 
+async function apiGet<T>(path: string): Promise<T> {
+  const token = await getToken();
+  const res = await fetch(`${BASE}${path}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new ShiprocketError(
+      (data.message as string) || "Shiprocket request failed.",
+      res.status
+    );
+  }
+  return data as unknown as T;
+}
+
+/** Public Shiprocket tracking page for a given AWB. */
+export function trackingUrl(awb: string | null | undefined): string | null {
+  return awb ? `https://shiprocket.co/tracking/${awb}` : null;
+}
+
+/**
+ * Normalises a Shiprocket status string to our fulfillment stages.
+ * PENDING | BOOKED | SHIPPED | DELIVERED | CANCELLED | RTO
+ */
+export function mapShiprocketStatus(raw: string | null | undefined): string {
+  const s = String(raw ?? "").toUpperCase();
+  if (!s) return "BOOKED";
+  if (s.includes("DELIVER") && s.includes("RTO")) return "RTO";
+  if (s.includes("DELIVER")) return "DELIVERED";
+  if (s.includes("RTO")) return "RTO";
+  if (s.includes("CANCEL")) return "CANCELLED";
+  if (s.includes("LOST") || s.includes("DAMAGED")) return "CANCELLED";
+  if (
+    s.includes("TRANSIT") ||
+    s.includes("OUT FOR DELIVERY") ||
+    s.includes("PICKED UP") ||
+    s.includes("SHIPPED") ||
+    s.includes("DISPATCH")
+  )
+    return "SHIPPED";
+  // NEW, INVOICED, READY TO SHIP, PICKUP SCHEDULED/QUEUED, AWB ASSIGNED …
+  return "BOOKED";
+}
+
 export interface PickupAddress {
   nickname: string; // unique per Shiprocket account
   name: string;
@@ -165,4 +211,57 @@ export async function createAdhocOrder(
     height: 8,
     weight: Math.max(0.1, input.weight_kg),
   });
+}
+
+export interface AwbResult {
+  awb_code: string | null;
+  courier_name: string | null;
+}
+
+/**
+ * Assigns the cheapest available courier + AWB to a shipment. This BOOKS the
+ * shipment and charges the Shiprocket wallet. Returns the AWB and courier.
+ */
+export async function assignAwb(shipmentId: number): Promise<AwbResult> {
+  const data = await api<Record<string, unknown>>("/courier/assign/awb", {
+    shipment_id: shipmentId,
+  });
+  // Response shape: { response: { data: { awb_code, courier_name, ... } } }
+  const resp = (data.response as Record<string, unknown>) ?? {};
+  const d = (resp.data as Record<string, unknown>) ?? {};
+  const awb = (d.awb_code as string) || (data.awb_code as string) || null;
+  const courier =
+    (d.courier_name as string) || (data.courier_name as string) || null;
+  return { awb_code: awb, courier_name: courier };
+}
+
+/** Requests a pickup for a booked shipment (best-effort). */
+export async function requestPickup(shipmentId: number): Promise<void> {
+  await api("/courier/generate/pickup", { shipment_id: [shipmentId] });
+}
+
+export interface TrackResult {
+  current_status: string | null;
+  awb_code: string | null;
+  courier_name: string | null;
+}
+
+/** Fetches the latest tracking state for a shipment. */
+export async function trackByShipment(shipmentId: number): Promise<TrackResult> {
+  const data = await apiGet<Record<string, unknown>>(
+    `/courier/track/shipment/${shipmentId}`
+  );
+  // Response: { tracking_data: { shipment_track: [ { current_status, awb_code, courier_name } ], shipment_status } }
+  const td = (data.tracking_data as Record<string, unknown>) ?? {};
+  const track = Array.isArray(td.shipment_track)
+    ? (td.shipment_track[0] as Record<string, unknown>)
+    : {};
+  return {
+    current_status:
+      (track.current_status as string) ||
+      (td.shipment_status as string) ||
+      null,
+    awb_code: (track.awb_code as string) || null,
+    courier_name: (track.courier_name as string) || null,
+  };
 }

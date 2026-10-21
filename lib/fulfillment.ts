@@ -2,6 +2,9 @@ import { supabaseAdmin } from "./supabaseAdmin";
 import {
   isShiprocketConfigured,
   createAdhocOrder,
+  assignAwb,
+  requestPickup,
+  trackingUrl,
   type AdhocOrderItem,
 } from "./shiprocket";
 
@@ -11,6 +14,8 @@ interface ShipmentRef {
   shiprocket_order_id?: number;
   shipment_id?: number;
   awb_code?: string | null;
+  courier_name?: string | null;
+  tracking_url?: string | null;
   status: "created" | "skipped" | "error";
   message?: string;
 }
@@ -104,12 +109,34 @@ export async function createShipmentsForOrder(orderId: string): Promise<void> {
           weight_kg: weightKg,
           items: srItems,
         });
+
+        // Auto-book: assign a courier + AWB (charges the Shiprocket wallet),
+        // then request a pickup. Best-effort — a booking failure is recorded
+        // but never throws.
+        let awb = res.awb_code ?? null;
+        let courier: string | null = null;
+        if (res.shipment_id) {
+          try {
+            const assigned = await assignAwb(res.shipment_id);
+            awb = assigned.awb_code ?? awb;
+            courier = assigned.courier_name ?? null;
+            if (awb) {
+              await requestPickup(res.shipment_id).catch(() => {});
+            }
+          } catch {
+            // AWB assignment failed (no serviceable courier / low balance) —
+            // the order still exists in Shiprocket; admin can retry there.
+          }
+        }
+
         refs.push({
           vendor_id: vendorId,
           pickup,
           shiprocket_order_id: res.order_id,
           shipment_id: res.shipment_id,
-          awb_code: res.awb_code ?? null,
+          awb_code: awb,
+          courier_name: courier,
+          tracking_url: trackingUrl(awb),
           status: "created",
         });
       } catch (e) {
@@ -122,12 +149,21 @@ export async function createShipmentsForOrder(orderId: string): Promise<void> {
       }
     }
 
+    const anyBooked = refs.some((r) => r.status === "created" && r.awb_code);
     const anyCreated = refs.some((r) => r.status === "created");
+    // Order-level tracking mirrors the first booked shipment (full detail per
+    // vendor stays in shiprocket_refs).
+    const primary = refs.find((r) => r.status === "created" && r.awb_code);
+
     await supabaseAdmin
       .from("orders")
       .update({
         shiprocket_refs: refs,
-        shipping_status: anyCreated ? "BOOKED" : "PENDING",
+        shipping_status: anyBooked ? "BOOKED" : anyCreated ? "PENDING" : "PENDING",
+        tracking_awb: primary?.awb_code ?? null,
+        tracking_courier: primary?.courier_name ?? null,
+        tracking_url: primary?.tracking_url ?? null,
+        shipping_updated_at: new Date().toISOString(),
       })
       .eq("id", orderId);
   } catch {
