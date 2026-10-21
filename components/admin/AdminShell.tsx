@@ -11,6 +11,7 @@ import {
   BarChart3,
   Contact,
   Headphones,
+  Truck,
   Menu,
   X,
   LogOut,
@@ -25,6 +26,7 @@ const NAV = [
   { label: "Agents", href: "/admin/agents", icon: Headphones },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Orders", href: "/admin/orders", icon: ReceiptText },
+  { label: "Shipping", href: "/admin/shipping", icon: Truck },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Commissions", href: "/admin/commissions", icon: Percent },
 ];

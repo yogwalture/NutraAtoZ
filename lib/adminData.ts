@@ -524,3 +524,145 @@ export async function getAllOrderItems(limit = 200): Promise<AdminOrderItem[]> {
   });
   return rows;
 }
+
+/* ------------------------------------------------------------------ *
+ * Shipping / fulfillment (admin-wide)
+ * ------------------------------------------------------------------ */
+
+export type ShippingStatus =
+  | "PENDING"
+  | "BOOKED"
+  | "PACKED"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "RTO";
+
+export interface ShipmentRefView {
+  vendor_id: string;
+  vendor_name: string;
+  pickup?: string;
+  shiprocket_order_id?: number;
+  shipment_id?: number;
+  awb_code?: string | null;
+  status?: string;
+  message?: string;
+}
+
+export interface ShippingOrder {
+  id: string;
+  created_at: string | null;
+  status: string; // payment status (CREATED / PAID)
+  payment_mode: string; // PREPAID / COD
+  total_amount: number;
+  shipping_status: ShippingStatus;
+  customer_name: string | null;
+  customer_phone: string | null;
+  customer_email: string | null;
+  ship_address: string | null;
+  ship_city: string | null;
+  ship_state: string | null;
+  ship_pincode: string | null;
+  tracking_courier: string | null;
+  tracking_awb: string | null;
+  tracking_url: string | null;
+  shipping_updated_at: string | null;
+  vendors: string[];
+  itemCount: number;
+  shiprocket: ShipmentRefView[];
+}
+
+function coerceShippingStatus(s: unknown): ShippingStatus {
+  const up = String(s ?? "").toUpperCase();
+  return (
+    ["PENDING", "BOOKED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED", "RTO"].includes(up)
+      ? up
+      : "PENDING"
+  ) as ShippingStatus;
+}
+
+export async function getShippingOrders(limit = 200): Promise<ShippingOrder[]> {
+  const { data: orders } = await supabaseAdmin
+    .from("orders")
+    .select(
+      "id, created_at, status, payment_mode, total_amount, shipping_status, customer_name, customer_phone, customer_email, ship_address, ship_city, ship_state, ship_pincode, shiprocket_refs, tracking_courier, tracking_awb, tracking_url, shipping_updated_at"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (!orders || orders.length === 0) return [];
+
+  const orderIds = orders.map((o) => o.id);
+  const { data: items } = await supabaseAdmin
+    .from("order_items")
+    .select("order_id, vendor_id")
+    .in("order_id", orderIds);
+
+  const vendorIds = Array.from(new Set((items ?? []).map((i) => i.vendor_id)));
+  const { data: vendors } = await supabaseAdmin
+    .from("vendors")
+    .select("id, store_name, company_name")
+    .in("id", vendorIds.length ? vendorIds : ["00000000-0000-0000-0000-000000000000"]);
+  const vNameById = new Map(
+    (vendors ?? []).map((v) => [v.id, v.store_name || v.company_name || "Vendor"])
+  );
+
+  const byOrder = new Map<string, { vendors: Set<string>; count: number }>();
+  for (const it of items ?? []) {
+    const e = byOrder.get(it.order_id) ?? { vendors: new Set<string>(), count: 0 };
+    e.vendors.add(it.vendor_id);
+    e.count += 1;
+    byOrder.set(it.order_id, e);
+  }
+
+  return orders.map((o) => {
+    const agg = byOrder.get(o.id) ?? { vendors: new Set<string>(), count: 0 };
+    const refsRaw = Array.isArray(o.shiprocket_refs)
+      ? (o.shiprocket_refs as Record<string, unknown>[])
+      : [];
+    const shiprocket: ShipmentRefView[] = refsRaw.map((r) => ({
+      vendor_id: String(r.vendor_id ?? ""),
+      vendor_name: vNameById.get(String(r.vendor_id ?? "")) ?? "Vendor",
+      pickup: r.pickup ? String(r.pickup) : undefined,
+      shiprocket_order_id: typeof r.shiprocket_order_id === "number" ? r.shiprocket_order_id : undefined,
+      shipment_id: typeof r.shipment_id === "number" ? r.shipment_id : undefined,
+      awb_code: (r.awb_code as string | null) ?? null,
+      status: r.status ? String(r.status) : undefined,
+      message: r.message ? String(r.message) : undefined,
+    }));
+
+    return {
+      id: o.id,
+      created_at: o.created_at ?? null,
+      status: o.status ?? "CREATED",
+      payment_mode: o.payment_mode ?? "PREPAID",
+      total_amount: Number(o.total_amount) || 0,
+      shipping_status: coerceShippingStatus(o.shipping_status),
+      customer_name: o.customer_name ?? null,
+      customer_phone: o.customer_phone ?? null,
+      customer_email: o.customer_email ?? null,
+      ship_address: o.ship_address ?? null,
+      ship_city: o.ship_city ?? null,
+      ship_state: o.ship_state ?? null,
+      ship_pincode: o.ship_pincode ?? null,
+      tracking_courier: o.tracking_courier ?? null,
+      tracking_awb: o.tracking_awb ?? null,
+      tracking_url: o.tracking_url ?? null,
+      shipping_updated_at: o.shipping_updated_at ?? null,
+      vendors: Array.from(agg.vendors).map((id) => vNameById.get(id) ?? "Vendor"),
+      itemCount: agg.count,
+      shiprocket,
+    };
+  });
+}
+
+export interface ShippingStats {
+  total: number;
+  byStatus: Record<string, number>;
+}
+
+export async function getShippingStats(): Promise<ShippingStats> {
+  const orders = await getShippingOrders(500);
+  const byStatus: Record<string, number> = {};
+  for (const o of orders) byStatus[o.shipping_status] = (byStatus[o.shipping_status] ?? 0) + 1;
+  return { total: orders.length, byStatus };
+}

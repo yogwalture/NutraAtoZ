@@ -723,6 +723,63 @@ export async function getAgentActivationLink(
   return { ok: true, activationLink: res.link, vendorEmail: email, message };
 }
 
+/* ------------------------------------------------------------------ *
+ * Shipping / fulfillment
+ * ------------------------------------------------------------------ */
+
+const SHIPPING_STATUSES = [
+  "PENDING",
+  "BOOKED",
+  "PACKED",
+  "SHIPPED",
+  "DELIVERED",
+  "CANCELLED",
+  "RTO",
+];
+
+export async function adminSetShippingStatus(
+  orderId: string,
+  status: string
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+  const s = String(status).trim().toUpperCase();
+  if (!SHIPPING_STATUSES.includes(s))
+    return { ok: false, error: "Invalid shipping status." };
+
+  const { error } = await supabaseAdmin
+    .from("orders")
+    .update({ shipping_status: s, shipping_updated_at: new Date().toISOString() })
+    .eq("id", orderId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin/shipping");
+  return { ok: true };
+}
+
+/** Admin records a courier/AWB/tracking URL for a shipment (manual fulfillment). */
+export async function adminSetTracking(
+  orderId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+
+  const { error } = await supabaseAdmin
+    .from("orders")
+    .update({
+      tracking_courier: str(formData.get("tracking_courier")),
+      tracking_awb: str(formData.get("tracking_awb")),
+      tracking_url: str(formData.get("tracking_url")),
+      shipping_updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin/shipping");
+  return { ok: true };
+}
+
 /** Remove an agent: unassign their leads and demote their profile. */
 export async function deleteAgent(agentId: string): Promise<ActionResult> {
   const guard = await requireAdmin();
