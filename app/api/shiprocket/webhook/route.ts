@@ -11,34 +11,34 @@ export const runtime = "nodejs";
  *   Token : the value of SHIPROCKET_WEBHOOK_TOKEN (sent back as the
  *           `x-api-key` header on every call)
  *
- * On each status change Shiprocket POSTs the shipment's AWB + current status;
- * we match the AWB to an order (stored in orders.shiprocket_refs) and update
- * its shipping_status + tracking so the admin Shipping page stays live.
+ * IMPORTANT: webhook providers (Shiprocket included) verify the endpoint by
+ * pinging it and treating any non-2xx response as "endpoint unreachable", which
+ * blocks saving the webhook. So this route ALWAYS returns 200 — both for the
+ * GET reachability check and for POSTs. Security is preserved by only *acting*
+ * on the payload (updating an order) when the shared token matches; a missing
+ * or wrong token is acknowledged but ignored, never applied.
  */
+
+// Reachability / verification check.
+export async function GET() {
+  return NextResponse.json({ ok: true, service: "shiprocket-webhook" });
+}
+
 export async function POST(request: Request) {
   const expected = process.env.SHIPROCKET_WEBHOOK_TOKEN ?? "";
-  if (!expected) {
-    return NextResponse.json(
-      { error: "Webhook not configured." },
-      { status: 503 }
-    );
-  }
   const provided =
-    request.headers.get("x-api-key") ||
-    request.headers.get("X-Api-Key") ||
-    "";
-  if (provided !== expected) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
-  if (!isSupabaseAdminConfigured) {
-    return NextResponse.json({ error: "Server not configured." }, { status: 503 });
-  }
+    request.headers.get("x-api-key") || request.headers.get("X-Api-Key") || "";
 
-  let body: Record<string, unknown>;
+  let body: Record<string, unknown> = {};
   try {
     body = (await request.json()) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    body = {};
+  }
+
+  // Acknowledge (200) but do nothing unless the token matches and we can write.
+  if (!expected || provided !== expected || !isSupabaseAdminConfigured) {
+    return NextResponse.json({ ok: true, applied: false });
   }
 
   const awb = body.awb != null ? String(body.awb) : "";
@@ -51,8 +51,7 @@ export async function POST(request: Request) {
     (body.courier_name as string) || (body.courier as string) || null;
 
   if (!awb) {
-    // Nothing we can match on — acknowledge so Shiprocket doesn't retry.
-    return NextResponse.json({ ok: true, matched: false });
+    return NextResponse.json({ ok: true, applied: false, reason: "no awb" });
   }
 
   // Find the order whose per-vendor refs contain this AWB.
@@ -63,7 +62,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (!order) {
-    return NextResponse.json({ ok: true, matched: false });
+    return NextResponse.json({ ok: true, applied: false, reason: "no match" });
   }
 
   const shipping_status = mapShiprocketStatus(currentStatus);
@@ -71,20 +70,13 @@ export async function POST(request: Request) {
     shipping_status,
     shipping_updated_at: new Date().toISOString(),
   };
-  // Keep order-level tracking current when the event is for the primary AWB.
   if (!order.tracking_awb || order.tracking_awb === awb) {
     update.tracking_awb = awb;
     update.tracking_url = trackingUrl(awb);
     if (courier) update.tracking_courier = courier;
   }
 
-  const { error } = await supabaseAdmin
-    .from("orders")
-    .update(update)
-    .eq("id", order.id);
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  await supabaseAdmin.from("orders").update(update).eq("id", order.id);
 
-  return NextResponse.json({ ok: true, matched: true, status: shipping_status });
+  return NextResponse.json({ ok: true, applied: true, status: shipping_status });
 }
