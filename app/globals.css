@@ -7,31 +7,31 @@
     --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
     --font-fraunces: "Fraunces", Georgia, serif;
 
-    /* shadcn/ui tokens (HSL channels) tuned to Citrus + Berry */
-    --background: 33 100% 97%; /* Warm cream #FFF8F0 */
-    --foreground: 16 40% 12%; /* Espresso */
+    /* shadcn/ui tokens (HSL channels) tuned to Teal + Coral */
+    --background: 168 44% 97%; /* Soft mint #F4FBFA */
+    --foreground: 165 42% 13%; /* Deep teal-charcoal */
 
     --card: 0 0% 100%;
-    --card-foreground: 16 40% 12%;
+    --card-foreground: 165 42% 13%;
 
-    --primary: 11 100% 64%; /* Coral #FF6B4A */
-    --primary-foreground: 33 100% 98%;
+    --primary: 173 82% 32%; /* Teal #0D9488 */
+    --primary-foreground: 168 44% 98%;
 
-    --secondary: 24 100% 94%; /* Soft peach */
-    --secondary-foreground: 11 80% 40%;
+    --secondary: 170 46% 93%; /* Light mint */
+    --secondary-foreground: 174 72% 26%;
 
-    --muted: 28 45% 94%;
-    --muted-foreground: 18 22% 45%;
+    --muted: 170 30% 94%;
+    --muted-foreground: 186 12% 40%;
 
-    --accent: 331 79% 56%; /* Berry #E63980 */
+    --accent: 11 100% 64%; /* Coral #FF6B4A */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 48%;
-    --destructive-foreground: 33 100% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 26 40% 88%;
-    --input: 26 40% 86%;
-    --ring: 11 100% 64%;
+    --border: 172 24% 87%;
+    --input: 172 24% 85%;
+    --ring: 173 82% 32%;
 
     --radius: 0.85rem;
   }
@@ -51,36 +51,36 @@
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: rgba(255, 107, 74, 0.25);
+    background: rgba(13, 148, 136, 0.22);
   }
 }
 
 @layer utilities {
-  /* ---- subtle warm grain / dot texture ---- */
+  /* ---- subtle teal grain / dot texture ---- */
   .bg-grain {
     background-image: radial-gradient(
-      rgba(217, 60, 29, 0.05) 1px,
+      rgba(13, 148, 136, 0.06) 1px,
       transparent 1px
     );
     background-size: 20px 20px;
   }
 
-  /* ---- animated citrus mesh background ---- */
+  /* ---- animated teal mesh background ---- */
   .bg-citrus-mesh {
-    background-color: #fff8f0;
+    background-color: #f4fbfa;
     background-image:
-      radial-gradient(at 12% 18%, rgba(255, 107, 74, 0.28) 0px, transparent 45%),
-      radial-gradient(at 85% 12%, rgba(255, 176, 32, 0.30) 0px, transparent 42%),
-      radial-gradient(at 78% 82%, rgba(230, 57, 128, 0.24) 0px, transparent 48%),
-      radial-gradient(at 22% 88%, rgba(255, 176, 32, 0.20) 0px, transparent 45%);
+      radial-gradient(at 12% 18%, rgba(20, 184, 166, 0.28) 0px, transparent 45%),
+      radial-gradient(at 85% 12%, rgba(13, 148, 136, 0.24) 0px, transparent 42%),
+      radial-gradient(at 78% 82%, rgba(255, 107, 74, 0.20) 0px, transparent 48%),
+      radial-gradient(at 22% 88%, rgba(20, 184, 166, 0.18) 0px, transparent 45%);
     background-size: 180% 180%;
     animation: meshShift 18s ease-in-out infinite;
   }
   .bg-citrus-soft {
-    background-color: #fff8f0;
+    background-color: #f4fbfa;
     background-image:
-      radial-gradient(at 90% 8%, rgba(255, 176, 32, 0.16) 0px, transparent 40%),
-      radial-gradient(at 6% 96%, rgba(230, 57, 128, 0.12) 0px, transparent 42%);
+      radial-gradient(at 90% 8%, rgba(20, 184, 166, 0.16) 0px, transparent 40%),
+      radial-gradient(at 6% 96%, rgba(255, 107, 74, 0.12) 0px, transparent 42%);
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -91,38 +91,28 @@
     scrollbar-width: none;
   }
 
-  /* ---- glassmorphism (warm) ---- */
+  /* ---- glassmorphism (cool) ---- */
   .glass {
-    background: rgba(255, 255, 255, 0.62);
+    background: rgba(255, 255, 255, 0.64);
     backdrop-filter: blur(18px) saturate(160%);
     -webkit-backdrop-filter: blur(18px) saturate(160%);
     border: 1px solid rgba(255, 255, 255, 0.7);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.7) inset,
-      0 12px 40px -14px rgba(217, 60, 29, 0.28);
+      0 12px 40px -14px rgba(13, 148, 136, 0.28);
   }
-  /* legacy name: now a coral-tinted dark glass */
-  .glass-emerald {
-    background: linear-gradient(
-      140deg,
-      rgba(255, 107, 74, 0.9),
-      rgba(230, 57, 128, 0.85)
-    );
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.25) inset,
-      0 26px 70px -22px rgba(217, 60, 29, 0.6);
-  }
+  /* legacy names: now a teal dark glass */
+  .glass-emerald,
   .glass-coral {
     background: linear-gradient(
       140deg,
-      rgba(255, 107, 74, 0.9),
-      rgba(230, 57, 128, 0.85)
+      rgba(20, 184, 166, 0.92),
+      rgba(13, 148, 136, 0.9)
     );
     border: 1px solid rgba(255, 255, 255, 0.28);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.25) inset,
-      0 26px 70px -22px rgba(217, 60, 29, 0.6);
+      0 26px 70px -22px rgba(13, 148, 136, 0.6);
   }
 
   /* ---- floating gradient orbs (blurred colour blobs) ---- */
@@ -130,47 +120,43 @@
     position: absolute;
     border-radius: 9999px;
     filter: blur(64px);
-    opacity: 0.55;
+    opacity: 0.5;
     pointer-events: none;
     z-index: 0;
   }
-  /* legacy names remapped */
   .orb-emerald {
-    background: radial-gradient(circle at 30% 30%, #ff8a5c, #ff6b4a 70%);
-  }
-  .orb-gold {
-    background: radial-gradient(circle at 30% 30%, #ffc85a, #ffb020 70%);
+    background: radial-gradient(circle at 30% 30%, #2dd4bf, #0d9488 70%);
   }
   .orb-coral {
     background: radial-gradient(circle at 30% 30%, #ff8a5c, #ff6b4a 70%);
   }
   .orb-berry {
-    background: radial-gradient(circle at 30% 30%, #f2649f, #e63980 70%);
+    background: radial-gradient(circle at 30% 30%, #2dd4bf, #0d9488 70%);
   }
+  .orb-gold,
   .orb-amber {
-    background: radial-gradient(circle at 30% 30%, #ffc85a, #ffb020 70%);
+    background: radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b 70%);
   }
 
   /* ---- depth shadows ---- */
   .shadow-float {
     box-shadow:
-      0 2px 6px -2px rgba(217, 60, 29, 0.14),
-      0 26px 50px -18px rgba(217, 60, 29, 0.24);
+      0 2px 6px -2px rgba(13, 148, 136, 0.16),
+      0 26px 50px -18px rgba(13, 148, 136, 0.24);
   }
-  /* legacy names remapped to warm glows */
   .shadow-glow-emerald {
-    box-shadow: 0 0 0 1px rgba(255, 107, 74, 0.12),
-      0 18px 45px -14px rgba(255, 107, 74, 0.6);
-  }
-  .shadow-glow-gold {
-    box-shadow: 0 0 44px -8px rgba(230, 57, 128, 0.55);
+    box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.14),
+      0 18px 45px -14px rgba(13, 148, 136, 0.55);
   }
   .shadow-glow-coral {
-    box-shadow: 0 0 0 1px rgba(255, 107, 74, 0.12),
-      0 18px 45px -14px rgba(255, 107, 74, 0.6);
+    box-shadow: 0 0 0 1px rgba(255, 107, 74, 0.14),
+      0 18px 45px -14px rgba(255, 107, 74, 0.55);
+  }
+  .shadow-glow-gold {
+    box-shadow: 0 0 44px -8px rgba(245, 158, 11, 0.5);
   }
   .shadow-glow-berry {
-    box-shadow: 0 0 44px -8px rgba(230, 57, 128, 0.55);
+    box-shadow: 0 0 44px -8px rgba(13, 148, 136, 0.5);
   }
 
   /* ---- 3D tilt cards ---- */
@@ -186,8 +172,8 @@
   }
   .tilt:hover {
     transform: rotateX(7deg) rotateY(-7deg) translateY(-8px) scale(1.03);
-    box-shadow: 0 4px 12px -4px rgba(217, 60, 29, 0.18),
-      0 34px 60px -24px rgba(217, 60, 29, 0.4);
+    box-shadow: 0 4px 12px -4px rgba(13, 148, 136, 0.2),
+      0 34px 60px -24px rgba(13, 148, 136, 0.4);
   }
   .tilt-inner {
     transform: translateZ(45px);
@@ -217,24 +203,26 @@
 
   /* ---- gradient text ---- */
   .text-gradient {
-    background: linear-gradient(100deg, #ff6b4a 0%, #e63980 55%, #ffb020 100%);
+    background: linear-gradient(100deg, #0d9488 0%, #14b8a6 45%, #ff6b4a 110%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .text-gradient-warm {
-    background: linear-gradient(100deg, #ff6b4a 0%, #ffb020 100%);
+    background: linear-gradient(100deg, #0d9488 0%, #14b8a6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   /* ---- solid gradient fills ---- */
+  /* primary CTA gradient — teal */
   .bg-citrus-gradient {
-    background: linear-gradient(120deg, #ff6b4a 0%, #e63980 60%, #ffb020 120%);
+    background: linear-gradient(120deg, #14b8a6 0%, #0d9488 60%, #0f766e 120%);
   }
+  /* accent gradient — coral */
   .bg-berry-gradient {
-    background: linear-gradient(120deg, #e63980 0%, #ff6b4a 100%);
+    background: linear-gradient(120deg, #ff6b4a 0%, #f5502e 100%);
   }
 
   /* ---- scroll reveal ---- */

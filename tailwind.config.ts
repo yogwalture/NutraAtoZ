@@ -9,12 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ===== Brand palette — Vibrant Citrus + Berry =====
-        // Warm cream canvas
-        alabaster: "#FFF8F0",
-        cream: "#FFF8F0",
+        // ===== Brand palette — Fresh Teal + Coral =====
+        // Soft mint canvas
+        alabaster: "#F4FBFA",
+        cream: "#F4FBFA",
 
-        // NEW explicit accent tokens (use these in new components)
+        // Coral — the accent / sale colour
         coral: {
           DEFAULT: "#FF6B4A",
           50: "#FFF1EC",
@@ -24,37 +24,40 @@ const config: Config = {
           600: "#F5502E",
           700: "#D93C1D",
         },
+        // Teal family (exposed as `berry` for legacy component references,
+        // which used `berry` for brand/label accents — now on-palette teal).
         berry: {
-          DEFAULT: "#E63980",
-          50: "#FDE9F1",
-          100: "#FBD0E1",
-          500: "#E63980",
-          600: "#CE2870",
-          700: "#A81A58",
+          DEFAULT: "#0D9488",
+          50: "#F0FDFA",
+          100: "#CCFBF1",
+          500: "#14B8A6",
+          600: "#0D9488",
+          700: "#0F766E",
         },
+        // Amber — review stars / warnings
         amber: {
-          DEFAULT: "#FFB020",
-          50: "#FFF6E2",
-          100: "#FFE9B8",
-          500: "#FFB020",
-          600: "#F59300",
+          DEFAULT: "#F59E0B",
+          50: "#FFF7E6",
+          100: "#FDE9B8",
+          500: "#F59E0B",
+          600: "#D97706",
         },
-        plum: "#5B1E52",
+        plum: "#0F3D37", // deep teal (modal overlays)
 
-        // ===== Legacy token names, REMAPPED to the citrus palette =====
-        // Existing pages/components reference `emerald` (primary) and `gold`
-        // (accent); remapping their values recolors the whole app at once.
+        // ===== Legacy token names, REMAPPED to the teal palette =====
+        // `emerald` (primary) → teal, `gold` (accent) → coral. Remapping these
+        // recolours the whole app from one place.
         emerald: {
-          DEFAULT: "#FF6B4A", // primary → coral
-          50: "#FFF1EC",
-          100: "#FFDDD1",
-          600: "#FF6B4A",
-          700: "#F5502E",
-          800: "#D93C1D",
+          DEFAULT: "#0D9488", // primary → teal
+          50: "#F0FDFA",
+          100: "#CCFBF1",
+          600: "#0D9488",
+          700: "#0F766E",
+          800: "#115E56",
         },
-        gold: "#E63980", // accent → berry
-        ink: "#2A1A14", // warm espresso text
-        mist: "#9A7B6E", // warm muted text
+        gold: "#FF6B4A", // accent → coral
+        ink: "#10302B", // deep teal-charcoal text
+        mist: "#5E7B76", // cool muted text
 
         // ----- shadcn/ui semantic tokens (HSL CSS vars) -----
         border: "hsl(var(--border))",
@@ -92,10 +95,10 @@ const config: Config = {
         serif: ["var(--font-fraunces)", "Georgia", "serif"],
       },
       boxShadow: {
-        card: "0 2px 6px rgba(217,60,29,0.06), 0 12px 32px rgba(217,60,29,0.08)",
+        card: "0 2px 6px rgba(13,148,136,0.07), 0 12px 32px rgba(13,148,136,0.09)",
         "card-hover":
-          "0 4px 10px rgba(217,60,29,0.10), 0 22px 50px rgba(217,60,29,0.16)",
-        bar: "0 -1px 0 rgba(217,60,29,0.06), 0 -10px 30px rgba(217,60,29,0.08)",
+          "0 4px 10px rgba(13,148,136,0.12), 0 22px 50px rgba(13,148,136,0.18)",
+        bar: "0 -1px 0 rgba(13,148,136,0.07), 0 -10px 30px rgba(13,148,136,0.09)",
       },
       borderRadius: {
         xl3: "2rem",
