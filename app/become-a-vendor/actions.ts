@@ -1,6 +1,7 @@
 "use server";
 
 import { supabaseAdmin, isSupabaseAdminConfigured } from "@/lib/supabaseAdmin";
+import { notifyNewEnquiry } from "@/lib/notify";
 
 export interface EnquiryResult {
   ok: boolean;
@@ -30,19 +31,40 @@ export async function submitEnquiry(formData: FormData): Promise<EnquiryResult> 
   if (!contact_phone && !str(formData.get("contact_email")))
     return { ok: false, error: "Please share a phone number or email so we can reach you." };
 
-  const { error } = await supabaseAdmin.from("vendor_leads").insert({
-    company_name,
-    contact_name,
-    contact_email: str(formData.get("contact_email")),
-    contact_phone,
-    city: str(formData.get("city")),
-    state: str(formData.get("state")),
-    product_category: str(formData.get("product_category")),
-    message: str(formData.get("message")),
-    source: "Public enquiry",
-    stage: "LEAD",
-  });
+  const contact_email = str(formData.get("contact_email"));
+  const city = str(formData.get("city"));
+  const product_category = str(formData.get("product_category"));
+
+  const { data: inserted, error } = await supabaseAdmin
+    .from("vendor_leads")
+    .insert({
+      company_name,
+      contact_name,
+      contact_email,
+      contact_phone,
+      city,
+      state: str(formData.get("state")),
+      product_category,
+      message: str(formData.get("message")),
+      source: "Public enquiry",
+      stage: "LEAD",
+    })
+    .select("id")
+    .single();
   if (error) return { ok: false, error: error.message };
+
+  // Best-effort: alert the admin team of the new enquiry.
+  if (inserted?.id) {
+    await notifyNewEnquiry({
+      id: inserted.id,
+      company_name,
+      contact_name,
+      contact_phone,
+      contact_email,
+      city,
+      product_category,
+    });
+  }
 
   return { ok: true };
 }

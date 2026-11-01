@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseAdminConfigured } from "@/lib/supabaseAdmin";
 import { mapShiprocketStatus, trackingUrl } from "@/lib/shiprocket";
+import { notifyShippingUpdate } from "@/lib/notify";
 
 export const runtime = "nodejs";
 
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
   // Find the order whose per-vendor refs contain this AWB.
   const { data: order } = await supabaseAdmin
     .from("orders")
-    .select("id, tracking_awb")
+    .select("id, tracking_awb, customer_email")
     .contains("shiprocket_refs", [{ awb_code: awb }])
     .maybeSingle();
 
@@ -66,17 +67,26 @@ export async function POST(request: Request) {
   }
 
   const shipping_status = mapShiprocketStatus(currentStatus);
+  const url = trackingUrl(awb);
   const update: Record<string, unknown> = {
     shipping_status,
     shipping_updated_at: new Date().toISOString(),
   };
   if (!order.tracking_awb || order.tracking_awb === awb) {
     update.tracking_awb = awb;
-    update.tracking_url = trackingUrl(awb);
+    update.tracking_url = url;
     if (courier) update.tracking_courier = courier;
   }
 
   await supabaseAdmin.from("orders").update(update).eq("id", order.id);
+
+  // Best-effort customer notification on key milestones (SHIPPED / DELIVERED).
+  await notifyShippingUpdate({
+    id: order.id,
+    email: order.customer_email ?? null,
+    status: shipping_status,
+    trackingUrl: url,
+  });
 
   return NextResponse.json({ ok: true, applied: true, status: shipping_status });
 }

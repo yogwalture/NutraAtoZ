@@ -215,6 +215,55 @@ export async function sendActionLinkEmail(params: {
   return sendEmail({ to, subject, html });
 }
 
+/**
+ * Flexible branded email: heading + one or more paragraph lines, with an
+ * optional call-to-action button. Used by the automation/notification layer.
+ */
+export async function sendBrandedEmail(params: {
+  to: string;
+  subject: string;
+  heading: string;
+  lines: string[];
+  actionLink?: string;
+  buttonLabel?: string;
+}): Promise<SendResult> {
+  const { to, subject, heading, lines, actionLink, buttonLabel } = params;
+  const body = lines
+    .map(
+      (l) =>
+        `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;">${escapeHtml(l)}</p>`
+    )
+    .join("");
+  const button =
+    actionLink && buttonLabel
+      ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+          <tr><td style="border-radius:999px;background:linear-gradient(135deg,#FF6B4A,#E63980);">
+            <a href="${actionLink}" style="display:inline-block;padding:13px 26px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;border-radius:999px;">${escapeHtml(buttonLabel)}</a>
+          </td></tr></table>`
+      : "";
+  const html = `<!doctype html>
+<html><body style="margin:0;padding:0;background:#FFF8F0;font-family:Arial,Helvetica,sans-serif;color:#2b1a12;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8F0;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.06);">
+        <tr><td style="background:linear-gradient(135deg,#FF6B4A,#E63980);padding:22px 28px;">
+          <span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">nutraAtoz</span>
+        </td></tr>
+        <tr><td style="padding:30px 28px;">
+          <h1 style="margin:0 0 14px;font-size:21px;color:#17382f;">${escapeHtml(heading)}</h1>
+          ${body}
+          ${button}
+        </td></tr>
+        <tr><td style="padding:18px 28px;background:#FBF1EA;font-size:12px;color:#9a8a80;">
+          Nutraatoz — India's verified nutraceutical marketplace.
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+  return sendEmail({ to, subject, html });
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

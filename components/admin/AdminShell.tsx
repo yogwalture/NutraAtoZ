@@ -12,6 +12,7 @@ import {
   Contact,
   Headphones,
   Truck,
+  ShieldCheck,
   Menu,
   X,
   LogOut,
@@ -29,6 +30,7 @@ const NAV = [
   { label: "Shipping", href: "/admin/shipping", icon: Truck },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Commissions", href: "/admin/commissions", icon: Percent },
+  { label: "Privacy", href: "/admin/privacy", icon: ShieldCheck },
 ];
 
 export default function AdminShell({

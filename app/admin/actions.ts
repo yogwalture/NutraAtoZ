@@ -6,6 +6,11 @@ import { getAdminContext } from "@/lib/adminData";
 import { parseProduct } from "@/lib/productForm";
 import { collectProductImages } from "@/lib/productImages";
 import {
+  anonymizeCustomerByEmail,
+  deleteCustomerAccount,
+  anonymizeVendor,
+} from "@/lib/privacy";
+import {
   isMailerConfigured,
   sendVendorInviteEmail,
   sendActionLinkEmail,
@@ -778,6 +783,70 @@ export async function adminSetTracking(
 
   revalidatePath("/admin/shipping");
   return { ok: true };
+}
+
+/* ------------------------------------------------------------------ *
+ * Data revocation (privacy)
+ * ------------------------------------------------------------------ */
+
+async function adminEmail(): Promise<string> {
+  const ctx = await getAdminContext();
+  return ctx.email || "admin";
+}
+
+/** Admin anonymizes a customer by email (keeps anonymized order history). */
+export async function adminAnonymizeCustomer(
+  formData: FormData
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+  const email = str(formData.get("email"));
+  if (!email) return { ok: false, error: "Enter the customer's email." };
+
+  const res = await anonymizeCustomerByEmail(email, await adminEmail());
+  if (!res.ok) return { ok: false, error: res.error };
+  revalidatePath("/admin/privacy");
+  return {
+    ok: true,
+    message: `Anonymized ${res.affected?.orders ?? 0} order(s) for ${email}.`,
+  };
+}
+
+/** Admin deletes a customer's account + data by email (hard delete). */
+export async function adminDeleteCustomer(
+  formData: FormData
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+  const email = str(formData.get("email"));
+  if (!email) return { ok: false, error: "Enter the customer's email." };
+
+  const user = await findAuthUserByEmail(email);
+  const by = await adminEmail();
+  const res = user
+    ? await deleteCustomerAccount(user.id, email, by)
+    : await anonymizeCustomerByEmail(email, by); // no login → anonymize records
+  if (!res.ok) return { ok: false, error: res.error };
+  revalidatePath("/admin/privacy");
+  return {
+    ok: true,
+    message: user
+      ? `Deleted account + data for ${email}.`
+      : `No login found; anonymized records for ${email}.`,
+  };
+}
+
+/** Admin clears a vendor's PII on request. */
+export async function adminAnonymizeVendor(
+  vendorId: string
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+  const res = await anonymizeVendor(vendorId, await adminEmail());
+  if (!res.ok) return { ok: false, error: res.error };
+  revalidatePath("/admin/privacy");
+  revalidatePath("/admin/vendors");
+  return { ok: true, message: "Vendor data anonymized." };
 }
 
 /** Remove an agent: unassign their leads and demote their profile. */

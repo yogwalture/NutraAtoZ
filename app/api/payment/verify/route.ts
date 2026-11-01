@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { RAZORPAY_KEY_SECRET, isRazorpayConfigured } from "@/lib/razorpay";
 import { isSupabaseAdminConfigured, supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createShipmentsForOrder } from "@/lib/fulfillment";
+import { notifyOrderConfirmation } from "@/lib/notify";
 
 export const runtime = "nodejs";
 
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
     .from("orders")
     .update({ status: "PAID", razorpay_payment_id })
     .eq("razorpay_order_id", razorpay_order_id)
-    .select("id, total_amount")
+    .select("id, total_amount, customer_email, customer_name")
     .maybeSingle();
 
   if (error) {
@@ -78,6 +79,16 @@ export async function POST(request: Request) {
     path: "/checkout",
     meta: { total: Number(updated?.total_amount ?? 0), mode: "PREPAID" },
   });
+
+  // Best-effort: email the customer their order confirmation.
+  if (updated?.id) {
+    await notifyOrderConfirmation({
+      id: updated.id,
+      email: updated.customer_email ?? null,
+      total: Number(updated.total_amount ?? 0),
+      name: updated.customer_name ?? null,
+    });
+  }
 
   // Best-effort: book Shiprocket shipments now that payment is confirmed.
   if (updated?.id) {

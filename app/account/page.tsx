@@ -4,6 +4,7 @@ import { ShoppingBag, Store, LayoutDashboard, FlaskConical, ArrowRight } from "l
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import SignOutButton from "@/components/account/SignOutButton";
+import DeleteAccountButton from "@/components/account/DeleteAccountButton";
 import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -87,6 +88,8 @@ export default async function AccountPage() {
               );
             })}
           </div>
+
+          <DeleteAccountButton />
         </section>
         <Footer />
       </main>
